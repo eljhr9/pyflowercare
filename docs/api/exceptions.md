@@ -25,7 +25,7 @@ class FlowerCareError(Exception):
 The base exception class for all FlowerCare-related errors. Use this to catch any error from the library:
 
 ```python
-from flowercare.exceptions import FlowerCareError
+from pyflowercare.exceptions import FlowerCareError
 
 try:
     async with device:
@@ -58,7 +58,7 @@ Raised when Bluetooth connection operations fail. This includes:
 
 **Example Usage:**
 ```python
-from flowercare.exceptions import ConnectionError
+from pyflowercare.exceptions import ConnectionError
 
 try:
     await device.connect(timeout=10.0)
@@ -111,7 +111,7 @@ Raised when the device is connected but operations fail. This includes:
 
 **Example Usage:**
 ```python
-from flowercare.exceptions import DeviceError
+from pyflowercare.exceptions import DeviceError
 
 try:
     async with device:
@@ -185,7 +185,7 @@ Raised when sensor data received from the device cannot be parsed correctly. Thi
 
 **Example Usage:**
 ```python
-from flowercare.exceptions import DataParsingError
+from pyflowercare.exceptions import DataParsingError
 
 try:
     async with device:
@@ -261,7 +261,7 @@ Raised when operations take longer than the specified timeout. This can occur du
 
 **Example Usage:**
 ```python
-from flowercare.exceptions import TimeoutError
+from pyflowercare.exceptions import TimeoutError
 
 try:
     # Scanner timeout
@@ -314,7 +314,7 @@ devices = await adaptive_operation(scan_operation)
 ### Comprehensive Error Handling
 
 ```python
-from flowercare.exceptions import (
+from pyflowercare.exceptions import (
     FlowerCareError,
     ConnectionError,
     DeviceError, 
@@ -499,7 +499,7 @@ for device in devices:
 
 ```python
 import logging
-from flowercare.exceptions import FlowerCareError
+from pyflowercare.exceptions import FlowerCareError
 
 logger = logging.getLogger(__name__)
 
@@ -556,7 +556,7 @@ except FlowerCareError:
 ```python
 import pytest
 from unittest.mock import Mock, AsyncMock
-from flowercare.exceptions import ConnectionError, DeviceError
+from pyflowercare.exceptions import ConnectionError, DeviceError
 
 @pytest.mark.asyncio
 async def test_connection_error_handling():

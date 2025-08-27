@@ -9,7 +9,7 @@ The `FlowerCareScanner` class handles discovery and identification of FlowerCare
 The scanner uses Bluetooth Low Energy (BLE) to discover FlowerCare devices by their advertising data. It can identify devices by their advertised name ("Flower care") or service UUID.
 
 ```python
-from flowercare import FlowerCareScanner
+from pyflowercare import FlowerCareScanner
 
 # Create scanner instance
 scanner = FlowerCareScanner()

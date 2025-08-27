@@ -8,7 +8,7 @@ Before diving into specific issues, run this quick diagnostic:
 
 ```python
 import asyncio
-from flowercare import FlowerCareScanner, setup_logging
+from pyflowercare import FlowerCareScanner, setup_logging
 
 async def quick_diagnostic():
     print("🔍 FlowerCare Quick Diagnostic")
@@ -16,7 +16,7 @@ async def quick_diagnostic():
     
     # Test 1: Library import
     try:
-        from flowercare import FlowerCareDevice, FlowerCareScanner
+        from pyflowercare import FlowerCareDevice, FlowerCareScanner
         print("✅ Library import successful")
     except ImportError as e:
         print(f"❌ Library import failed: {e}")
@@ -227,7 +227,7 @@ groups $USER
 **Diagnostic Script**:
 ```python
 import asyncio
-from flowercare import FlowerCareScanner
+from pyflowercare import FlowerCareScanner
 from bleak import BleakScanner
 
 async def debug_discovery():
@@ -442,7 +442,7 @@ async def debug_data_reading(device):
     async with device:
         try:
             # Try reading raw characteristics
-            from flowercare.constants import CHARACTERISTIC_UUIDS, COMMANDS
+            from pyflowercare.constants import CHARACTERISTIC_UUIDS, COMMANDS
             
             # Send command
             await device.client.write_gatt_char(
@@ -718,7 +718,7 @@ If you're still experiencing issues:
 
 1. **Enable debug logging**:
 ```python
-from flowercare.logging import setup_logging
+from pyflowercare.logging import setup_logging
 setup_logging("DEBUG")
 ```
 
@@ -734,7 +734,7 @@ print(f"Architecture: {platform.architecture()}")
 3. **Create minimal reproduction case**:
 ```python
 import asyncio
-from flowercare import FlowerCareScanner
+from pyflowercare import FlowerCareScanner
 
 async def minimal_repro():
     scanner = FlowerCareScanner()

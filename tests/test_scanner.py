@@ -5,15 +5,15 @@ import pytest
 from bleak.backends.device import BLEDevice
 from bleak.backends.scanner import AdvertisementData
 
-from flowercare.device import FlowerCareDevice
-from flowercare.exceptions import TimeoutError
-from flowercare.scanner import FlowerCareScanner
+from pyflowercare.device import FlowerCareDevice
+from pyflowercare.exceptions import TimeoutError
+from pyflowercare.scanner import FlowerCareScanner
 
 
 class TestFlowerCareScanner:
     """Test FlowerCareScanner class."""
 
-    @patch("flowercare.scanner.BleakScanner")
+    @patch("pyflowercare.scanner.BleakScanner")
     def test_scanner_initialization(self, mock_bleak_scanner):
         """Test scanner initialization."""
         scanner = FlowerCareScanner()
@@ -86,7 +86,7 @@ class TestFlowerCareScanner:
         scanner = FlowerCareScanner()
 
         # Mock the scanner behavior
-        with patch("flowercare.scanner.BleakScanner") as mock_scanner_class:
+        with patch("pyflowercare.scanner.BleakScanner") as mock_scanner_class:
             mock_scanner_instance = AsyncMock()
             mock_scanner_class.return_value = mock_scanner_instance
 
@@ -110,7 +110,7 @@ class TestFlowerCareScanner:
         """Test scanning with no devices found."""
         scanner = FlowerCareScanner()
 
-        with patch("flowercare.scanner.BleakScanner") as mock_scanner_class:
+        with patch("pyflowercare.scanner.BleakScanner") as mock_scanner_class:
             mock_scanner_instance = AsyncMock()
             mock_scanner_class.return_value = mock_scanner_instance
 
@@ -123,7 +123,7 @@ class TestFlowerCareScanner:
         """Test device deduplication during scanning."""
         scanner = FlowerCareScanner()
 
-        with patch("flowercare.scanner.BleakScanner") as mock_scanner_class:
+        with patch("pyflowercare.scanner.BleakScanner") as mock_scanner_class:
             mock_scanner_instance = AsyncMock()
             mock_scanner_class.return_value = mock_scanner_instance
 
@@ -147,7 +147,7 @@ class TestFlowerCareScanner:
         """Test scan timeout handling."""
         scanner = FlowerCareScanner()
 
-        with patch("flowercare.scanner.BleakScanner") as mock_scanner_class:
+        with patch("pyflowercare.scanner.BleakScanner") as mock_scanner_class:
             mock_scanner_instance = AsyncMock()
             mock_scanner_class.return_value = mock_scanner_instance
 
@@ -209,7 +209,7 @@ class TestFlowerCareScanner:
         def callback(device):
             detected_devices.append(device)
 
-        with patch("flowercare.scanner.BleakScanner") as mock_scanner_class:
+        with patch("pyflowercare.scanner.BleakScanner") as mock_scanner_class:
             mock_scanner_instance = AsyncMock()
             mock_scanner_instance.__aenter__ = AsyncMock(return_value=mock_scanner_instance)
             mock_scanner_instance.__aexit__ = AsyncMock(return_value=None)
@@ -237,7 +237,7 @@ class TestFlowerCareScanner:
         def callback(device):
             detected_devices.append(device)
 
-        with patch("flowercare.scanner.BleakScanner") as mock_scanner_class:
+        with patch("pyflowercare.scanner.BleakScanner") as mock_scanner_class:
             mock_scanner_instance = AsyncMock()
             mock_scanner_instance.__aenter__ = AsyncMock(return_value=mock_scanner_instance)
             mock_scanner_instance.__aexit__ = AsyncMock(return_value=None)
@@ -262,7 +262,7 @@ class TestFlowerCareScanner:
         """Test streaming scan with devices."""
         scanner = FlowerCareScanner()
 
-        with patch("flowercare.scanner.BleakScanner") as mock_scanner_class:
+        with patch("pyflowercare.scanner.BleakScanner") as mock_scanner_class:
             mock_scanner_instance = AsyncMock()
             mock_scanner_class.return_value = mock_scanner_instance
 
@@ -293,7 +293,7 @@ class TestFlowerCareScanner:
         """Test streaming scan with no devices."""
         scanner = FlowerCareScanner()
 
-        with patch("flowercare.scanner.BleakScanner") as mock_scanner_class:
+        with patch("pyflowercare.scanner.BleakScanner") as mock_scanner_class:
             mock_scanner_instance = AsyncMock()
             mock_scanner_class.return_value = mock_scanner_instance
 
@@ -308,7 +308,7 @@ class TestFlowerCareScanner:
         """Test streaming scan cancellation."""
         scanner = FlowerCareScanner()
 
-        with patch("flowercare.scanner.BleakScanner") as mock_scanner_class:
+        with patch("pyflowercare.scanner.BleakScanner") as mock_scanner_class:
             mock_scanner_instance = AsyncMock()
             mock_scanner_instance.__aenter__ = AsyncMock(return_value=mock_scanner_instance)
             mock_scanner_instance.__aexit__ = AsyncMock(return_value=None)

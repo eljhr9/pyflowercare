@@ -1,6 +1,6 @@
 import pytest
 
-from flowercare.constants import (
+from pyflowercare.constants import (
     ADVERTISEMENT_UUID,
     CHARACTERISTIC_UUIDS,
     COMMANDS,

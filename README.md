@@ -29,7 +29,7 @@ pip install pyflowercare
 
 ```python
 import asyncio
-from flowercare import FlowerCareScanner
+from pyflowercare import FlowerCareScanner
 
 async def main():
     scanner = FlowerCareScanner()
@@ -77,7 +77,7 @@ async with device:
 ```python
 import asyncio
 from datetime import datetime
-from flowercare import FlowerCareScanner
+from pyflowercare import FlowerCareScanner
 
 async def monitor_device(device):
     while True:
@@ -141,7 +141,7 @@ asyncio.run(main())
 The library provides specific exception types:
 
 ```python
-from flowercare.exceptions import (
+from pyflowercare.exceptions import (
     FlowerCareError,      # Base exception
     ConnectionError,      # Connection failures
     DeviceError,         # Device operation errors
@@ -163,7 +163,7 @@ except DeviceError as e:
 Enable logging to see detailed operation information:
 
 ```python
-from flowercare.logging import setup_logging
+from pyflowercare import setup_logging
 
 setup_logging("DEBUG")  # Enable debug logging
 ```

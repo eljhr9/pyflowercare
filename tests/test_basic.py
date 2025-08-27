@@ -1,7 +1,7 @@
 import pytest
 
-from flowercare import DeviceInfo, FlowerCareDevice, FlowerCareScanner, SensorData, setup_logging
-from flowercare.exceptions import FlowerCareError
+from pyflowercare import DeviceInfo, FlowerCareDevice, FlowerCareScanner, SensorData, setup_logging
+from pyflowercare.exceptions import FlowerCareError
 
 
 def test_imports():

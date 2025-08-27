@@ -253,7 +253,7 @@ except DataParsingError:
 
 **Comprehensive error handling**:
 ```python
-from flowercare.exceptions import FlowerCareError
+from pyflowercare.exceptions import FlowerCareError
 
 try:
     async with device:

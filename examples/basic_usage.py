@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import asyncio
 import sys
+from pathlib import Path
 
-sys.path.insert(0, "../")
+# Add src to Python path
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from flowercare import FlowerCareScanner, setup_logging
+from pyflowercare import FlowerCareScanner, setup_logging
 
 
 async def main():

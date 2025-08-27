@@ -8,7 +8,7 @@ Let's create a simple script to discover and read data from your FlowerCare sens
 
 ```python title="my_first_flowercare.py"
 import asyncio
-from flowercare import FlowerCareScanner, setup_logging
+from pyflowercare import FlowerCareScanner, setup_logging
 
 async def main():
     # Enable logging to see what's happening
@@ -85,7 +85,7 @@ Let's understand what each part does:
 
 ```python
 import asyncio
-from flowercare import FlowerCareScanner, setup_logging
+from pyflowercare import FlowerCareScanner, setup_logging
 ```
 
 - `asyncio`: Python's async/await framework
@@ -161,7 +161,7 @@ if device:
 ### Error Handling
 
 ```python
-from flowercare.exceptions import ConnectionError, DeviceError
+from pyflowercare.exceptions import ConnectionError, DeviceError
 
 try:
     async with device:
@@ -200,7 +200,7 @@ Now that you have the basics working, explore these topics:
 ### Import Errors
 
 ```python
-ImportError: No module named 'flowercare'
+ImportError: No module named 'pyflowercare'
 ```
 
 The library isn't installed. Run:

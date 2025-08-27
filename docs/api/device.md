@@ -9,7 +9,7 @@ The `FlowerCareDevice` class is the core interface for communicating with Flower
 The `FlowerCareDevice` class provides a high-level interface for FlowerCare plant sensors. Each instance represents a single physical device and manages its Bluetooth Low Energy connection.
 
 ```python
-from flowercare import FlowerCareScanner
+from pyflowercare import FlowerCareScanner
 
 # Get a device instance
 scanner = FlowerCareScanner()
@@ -262,7 +262,7 @@ The LED will blink for several seconds, making it easy to identify the physical 
 The `FlowerCareDevice` class raises specific exceptions for different error conditions:
 
 ```python
-from flowercare.exceptions import (
+from pyflowercare.exceptions import (
     ConnectionError, 
     DeviceError, 
     DataParsingError, 
@@ -301,7 +301,7 @@ FlowerCareError (base)
 ### Basic Sensor Reading
 
 ```python
-from flowercare import FlowerCareScanner
+from pyflowercare import FlowerCareScanner
 
 async def read_plant_data():
     scanner = FlowerCareScanner()

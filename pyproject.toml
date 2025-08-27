@@ -1,10 +1,10 @@
 [tool.poetry]
 name = "pyflowercare"
-version = "0.1.0"
+version = "0.2.1"
 description = "Python library for communicating with FlowerCare (Xiaomi MiFlora) Bluetooth plant sensors"
 authors = ["Ilya Redkolis <illyaredkolis@gmail.com>"]
 readme = "README.md"
-packages = [{include = "flowercare"}]
+packages = [{include = "pyflowercare", from = "src"}]
 homepage = "https://github.com/eljhr9/pyflowercare"
 repository = "https://github.com/eljhr9/pyflowercare"
 keywords = ["flowercare", "xiaomi", "miflora", "bluetooth", "plant", "sensor", "ble"]
@@ -68,7 +68,7 @@ addopts = [
     "--strict-markers",
     "--strict-config", 
     "--verbose",
-    "--cov=flowercare",
+    "--cov=src/pyflowercare",
     "--cov-report=term-missing",
     "--cov-report=html",
     "--cov-report=xml",
@@ -85,7 +85,7 @@ filterwarnings = [
 ]
 
 [tool.coverage.run]
-source = ["flowercare"]
+source = ["src/pyflowercare"]
 omit = ["tests/*", "examples/*"]
 
 [tool.coverage.report]

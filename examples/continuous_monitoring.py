@@ -3,10 +3,12 @@ import asyncio
 import signal
 import sys
 from datetime import datetime
+from pathlib import Path
 
-sys.path.insert(0, "../")
+# Add src to Python path
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from flowercare import FlowerCareDevice, FlowerCareScanner, setup_logging
+from pyflowercare import FlowerCareDevice, FlowerCareScanner, setup_logging
 
 
 class FlowerCareMonitor:

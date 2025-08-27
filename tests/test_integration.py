@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from flowercare import (
+from pyflowercare import (
     DeviceInfo,
     FlowerCareDevice,
     FlowerCareScanner,
@@ -32,7 +32,7 @@ class TestIntegration:
         scanner = FlowerCareScanner()
 
         # Mock successful scanning
-        with patch("flowercare.scanner.BleakScanner") as mock_scanner_class:
+        with patch("pyflowercare.scanner.BleakScanner") as mock_scanner_class:
             mock_scanner_instance = AsyncMock()
             mock_scanner_class.return_value = mock_scanner_instance
 
@@ -54,7 +54,7 @@ class TestIntegration:
             assert isinstance(device, FlowerCareDevice)
 
             # Mock connection and data reading
-            with patch("flowercare.device.BleakClient", return_value=mock_bleak_client):
+            with patch("pyflowercare.device.BleakClient", return_value=mock_bleak_client):
                 # Test connection
                 await device.connect()
                 assert device.is_connected
@@ -116,7 +116,7 @@ class TestIntegration:
         """Test the historical data retrieval workflow."""
         device = FlowerCareDevice(mock_ble_device)
 
-        with patch("flowercare.device.BleakClient", return_value=mock_bleak_client):
+        with patch("pyflowercare.device.BleakClient", return_value=mock_bleak_client):
             await device.connect()
 
             # Mock historical data responses
@@ -170,7 +170,7 @@ class TestIntegration:
         """Test using device as context manager."""
         device = FlowerCareDevice(mock_ble_device)
 
-        with patch("flowercare.device.BleakClient", return_value=mock_bleak_client):
+        with patch("pyflowercare.device.BleakClient", return_value=mock_bleak_client):
             async with device:
                 assert device.is_connected
 
@@ -192,7 +192,7 @@ class TestIntegration:
         target_mac = "AA:BB:CC:DD:EE:FF"
         mock_ble_device.address = target_mac
 
-        with patch("flowercare.scanner.BleakScanner") as mock_scanner_class:
+        with patch("pyflowercare.scanner.BleakScanner") as mock_scanner_class:
             mock_scanner_instance = AsyncMock()
             mock_scanner_class.return_value = mock_scanner_instance
 
@@ -250,7 +250,7 @@ class TestIntegration:
 
     def test_error_handling_integration(self):
         """Test that exceptions are properly propagated."""
-        from flowercare.exceptions import ConnectionError, DeviceError, FlowerCareError
+        from pyflowercare.exceptions import ConnectionError, DeviceError, FlowerCareError
 
         # Test exception hierarchy
         connection_error = ConnectionError("Connection failed")
@@ -277,7 +277,7 @@ class TestIntegration:
         setup_logging("DEBUG", include_timestamp=False)
 
         # Test that logger creation works
-        from flowercare.logging import get_logger
+        from pyflowercare.logging import get_logger
 
         logger = get_logger("test")
         assert logger is not None

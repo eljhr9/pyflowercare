@@ -8,7 +8,7 @@ The most basic use case - find a device and read its data:
 
 ```python title="simple_reading.py"
 import asyncio
-from flowercare import FlowerCareScanner, setup_logging
+from pyflowercare import FlowerCareScanner, setup_logging
 
 async def main():
     # Enable logging to see what's happening
@@ -63,7 +63,7 @@ Get comprehensive information about your device:
 
 ```python title="device_info.py"
 import asyncio
-from flowercare import FlowerCareScanner
+from pyflowercare import FlowerCareScanner
 
 async def device_health_check():
     """Comprehensive device health and information check"""
@@ -158,7 +158,7 @@ Handle multiple FlowerCare devices simultaneously:
 
 ```python title="multiple_devices.py"
 import asyncio
-from flowercare import FlowerCareScanner
+from pyflowercare import FlowerCareScanner
 from dataclasses import dataclass
 from typing import Dict, Optional
 
@@ -302,7 +302,7 @@ Access and analyze historical sensor data:
 
 ```python title="history_analysis.py"
 import asyncio
-from flowercare import FlowerCareScanner
+from pyflowercare import FlowerCareScanner
 from datetime import datetime, timedelta
 import statistics
 
@@ -447,8 +447,8 @@ Robust error handling for production use:
 import asyncio
 import logging
 from datetime import datetime
-from flowercare import FlowerCareScanner
-from flowercare.exceptions import (
+from pyflowercare import FlowerCareScanner
+from pyflowercare.exceptions import (
     FlowerCareError, ConnectionError, DeviceError, 
     DataParsingError, TimeoutError
 )
@@ -651,7 +651,7 @@ import csv
 import json
 from datetime import datetime
 from pathlib import Path
-from flowercare import FlowerCareScanner
+from pyflowercare import FlowerCareScanner
 
 async def export_plant_data():
     """Export current and historical data to files"""

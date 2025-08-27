@@ -6,7 +6,7 @@ import pytest
 from bleak import BleakClient
 from bleak.backends.device import BLEDevice
 
-from flowercare import DeviceInfo, HistoricalEntry, SensorData
+from pyflowercare import DeviceInfo, HistoricalEntry, SensorData
 
 
 @pytest.fixture

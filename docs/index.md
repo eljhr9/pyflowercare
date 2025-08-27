@@ -41,7 +41,7 @@ Full type annotation support for better IDE integration and code quality
 
 ```python
 import asyncio
-from flowercare import FlowerCareScanner
+from pyflowercare import FlowerCareScanner
 
 async def main():
     # Discover devices

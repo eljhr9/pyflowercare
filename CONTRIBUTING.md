@@ -276,7 +276,7 @@ Device connection fails intermittently
 ## Code to Reproduce
 ```python
 import asyncio
-from flowercare import FlowerCareScanner
+from pyflowercare import FlowerCareScanner
 
 async def main():
     scanner = FlowerCareScanner()
@@ -373,7 +373,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 # Use this for debugging
-from flowercare.logging import setup_logging
+from pyflowercare.logging import setup_logging
 setup_logging("DEBUG")
 ```
 

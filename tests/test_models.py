@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 from pydantic import ValidationError
 
-from flowercare.models import DeviceInfo, HistoricalEntry, SensorData
+from pyflowercare.models import DeviceInfo, HistoricalEntry, SensorData
 
 
 class TestSensorData:

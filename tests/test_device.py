@@ -6,9 +6,9 @@ import pytest
 from bleak import BleakError
 from bleak.backends.device import BLEDevice
 
-from flowercare.device import FlowerCareDevice
-from flowercare.exceptions import ConnectionError, DataParsingError, DeviceError, TimeoutError
-from flowercare.models import DeviceInfo, HistoricalEntry, SensorData
+from pyflowercare.device import FlowerCareDevice
+from pyflowercare.exceptions import ConnectionError, DataParsingError, DeviceError, TimeoutError
+from pyflowercare.models import DeviceInfo, HistoricalEntry, SensorData
 
 
 class TestFlowerCareDevice:
@@ -39,7 +39,7 @@ class TestFlowerCareDevice:
         """Test successful connection."""
         device = FlowerCareDevice(mock_ble_device)
 
-        with patch("flowercare.device.BleakClient", return_value=mock_bleak_client):
+        with patch("pyflowercare.device.BleakClient", return_value=mock_bleak_client):
             await device.connect()
 
         assert device._connected is True
@@ -52,7 +52,7 @@ class TestFlowerCareDevice:
         device = FlowerCareDevice(mock_ble_device)
         mock_bleak_client.connect.side_effect = BleakError("Connection failed")
 
-        with patch("flowercare.device.BleakClient", return_value=mock_bleak_client):
+        with patch("pyflowercare.device.BleakClient", return_value=mock_bleak_client):
             with pytest.raises(ConnectionError) as exc_info:
                 await device.connect()
 
@@ -75,7 +75,7 @@ class TestFlowerCareDevice:
         """Test async context manager."""
         device = FlowerCareDevice(mock_ble_device)
 
-        with patch("flowercare.device.BleakClient", return_value=mock_bleak_client):
+        with patch("pyflowercare.device.BleakClient", return_value=mock_bleak_client):
             async with device as ctx_device:
                 assert ctx_device is device
                 assert device._connected is True

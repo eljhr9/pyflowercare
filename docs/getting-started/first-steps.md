@@ -79,7 +79,7 @@ async with device:
 All sensor readings use the `SensorData` class:
 
 ```python
-from flowercare.models import SensorData
+from pyflowercare.models import SensorData
 
 # Reading data
 data = await device.read_sensor_data()
@@ -136,7 +136,7 @@ print(f"Plant status: {health}")
 The library provides specific exception types for different scenarios:
 
 ```python
-from flowercare.exceptions import (
+from pyflowercare.exceptions import (
     FlowerCareError,    # Base exception
     ConnectionError,    # Bluetooth connection issues
     DeviceError,        # Device operation failures
@@ -312,7 +312,7 @@ async def analyze_plant_trends(device):
 
 ### Logging Configuration
 ```python
-from flowercare.logging import setup_logging, disable_bleak_logs
+from pyflowercare.logging import setup_logging, disable_bleak_logs
 
 # Different log levels for different scenarios
 setup_logging("DEBUG")    # Development - see everything

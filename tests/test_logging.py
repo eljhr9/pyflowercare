@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from flowercare.logging import disable_bleak_logs, get_logger, setup_logging
+from pyflowercare.logging import disable_bleak_logs, get_logger, setup_logging
 
 
 class TestLogging:

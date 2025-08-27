@@ -1,6 +1,6 @@
 import pytest
 
-from flowercare.exceptions import (
+from pyflowercare.exceptions import (
     ConnectionError,
     DataParsingError,
     DeviceError,

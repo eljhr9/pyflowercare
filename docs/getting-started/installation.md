@@ -142,7 +142,7 @@ Verify your installation works correctly:
 
 ```python
 import asyncio
-from flowercare import FlowerCareScanner, setup_logging
+from pyflowercare import FlowerCareScanner, setup_logging
 
 async def test_installation():
     # Enable debug logging
