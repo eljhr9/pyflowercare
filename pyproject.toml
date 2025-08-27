@@ -2,11 +2,11 @@
 name = "pyflowercare"
 version = "0.1.0"
 description = "Python library for communicating with FlowerCare (Xiaomi MiFlora) Bluetooth plant sensors"
-authors = ["Ilya Redkolis <ir@belichberg.com>"]
+authors = ["Ilya Redkolis <illyaredkolis@gmail.com>"]
 readme = "README.md"
 packages = [{include = "flowercare"}]
-homepage = "https://github.com/your-username/pyflowercare"
-repository = "https://github.com/your-username/pyflowercare"
+homepage = "https://github.com/eljhr9/pyflowercare"
+repository = "https://github.com/eljhr9/pyflowercare"
 keywords = ["flowercare", "xiaomi", "miflora", "bluetooth", "plant", "sensor", "ble"]
 license = "MIT"
 classifiers = [
@@ -38,6 +38,10 @@ black = "^23.0"
 isort = "^5.12"
 mypy = "^1.5"
 pre-commit = "^3.3"
+bandit = "^1.8.6"
+pip-audit = "^2.9.0"
+safety = "^3.6.0"
+twine = "^6.1.0"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.5.0"

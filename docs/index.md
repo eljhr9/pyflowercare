@@ -88,10 +88,10 @@ This documentation is organized to help you get started quickly and then dive de
 
 ## 🤝 Community & Support
 
-- **Issues**: Report bugs or request features on [GitHub Issues](https://github.com/your-username/pyflowercare/issues)
-- **Discussions**: Join the conversation on [GitHub Discussions](https://github.com/your-username/pyflowercare/discussions)
-- **Contributing**: See our [contribution guidelines](https://github.com/your-username/pyflowercare/blob/main/CONTRIBUTING.md)
+- **Issues**: Report bugs or request features on [GitHub Issues](https://github.com/eljhr9/pyflowercare/issues)
+- **Discussions**: Join the conversation on [GitHub Discussions](https://github.com/eljhr9/pyflowercare/discussions)
+- **Contributing**: See our [contribution guidelines](https://github.com/eljhr9/pyflowercare/blob/main/CONTRIBUTING.md)
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](https://github.com/your-username/pyflowercare/blob/main/LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/eljhr9/pyflowercare/blob/main/LICENSE) file for details.

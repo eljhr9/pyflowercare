@@ -3,7 +3,7 @@ site_description: A comprehensive Python library for FlowerCare Bluetooth plant 
 site_author: Ilya Redkolis
 site_url: https://your-docs-site.com
 
-repo_url: https://github.com/your-username/growify-core
+repo_url: https://github.com/eljhr9/growify-core
 repo_name: growify-core
 
 theme:

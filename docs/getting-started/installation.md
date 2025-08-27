@@ -60,7 +60,7 @@ Install the latest development version:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/pyflowercare.git
+git clone https://github.com/eljhr9/pyflowercare.git
 cd pyflowercare
 
 # Install with pip
@@ -225,7 +225,7 @@ If you plan to contribute to the library:
 
 ```bash
 # Clone and install in development mode
-git clone https://github.com/your-username/pyflowercare.git
+git clone https://github.com/eljhr9/pyflowercare.git
 cd pyflowercare
 
 # Install with development dependencies

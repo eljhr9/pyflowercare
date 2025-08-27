@@ -479,7 +479,7 @@ async def get_plant_data():
 
 Development setup:
 ```bash
-git clone https://github.com/your-username/pyflowercare.git
+git clone https://github.com/eljhr9/pyflowercare.git
 cd pyflowercare
 poetry install --with dev
 pre-commit install
