@@ -1,0 +1,136 @@
+[tool.poetry]
+name = "pyflowercare"
+version = "0.1.0"
+description = "Python library for communicating with FlowerCare (Xiaomi MiFlora) Bluetooth plant sensors"
+authors = ["Ilya Redkolis <ir@belichberg.com>"]
+readme = "README.md"
+packages = [{include = "flowercare"}]
+homepage = "https://github.com/your-username/pyflowercare"
+repository = "https://github.com/your-username/pyflowercare"
+keywords = ["flowercare", "xiaomi", "miflora", "bluetooth", "plant", "sensor", "ble"]
+license = "MIT"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Home Automation",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Hardware :: Hardware Drivers",
+]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.13"
+bleak = "^0.21.0"
+pydantic = "^2.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0"
+pytest-asyncio = "^0.21.0"
+pytest-cov = "^4.0"
+pytest-mock = "^3.11"
+black = "^23.0"
+isort = "^5.12"
+mypy = "^1.5"
+pre-commit = "^3.3"
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "^1.5.0"
+mkdocs-material = "^9.0"
+mkdocstrings = {extras = ["python"], version = "^0.23.0"}
+pymdown-extensions = "^10.0"
+
+[tool.poetry.group.docs-minimal.dependencies]
+mkdocs = "^1.5.0"
+mkdocs-material = "^9.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+addopts = [
+    "--strict-markers",
+    "--strict-config", 
+    "--verbose",
+    "--cov=flowercare",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+    "--cov-fail-under=90"
+]
+markers = [
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests", 
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')"
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning"
+]
+
+[tool.coverage.run]
+source = ["flowercare"]
+omit = ["tests/*", "examples/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:"
+]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = "bleak.*"
+ignore_missing_imports = true
+
+[tool.black]
+line-length = 100
+target-version = ['py39']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 100
