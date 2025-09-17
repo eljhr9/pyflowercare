@@ -36,20 +36,48 @@ class FlowerCareDevice:
 
     async def connect(self, timeout: float = 10.0) -> None:
         try:
-            self.client = BleakClient(self.device)
+            # Check if device is a proper BLEDevice from bleak or our custom DirectBLEDevice
+            # Proper BLEDevices are instances of the BLEDevice class from bleak
+            if isinstance(self.device, BLEDevice):
+                # This is a proper BLEDevice from bleak
+                self.client = BleakClient(self.device)
+            else:
+                # This is our custom DirectBLEDevice, use address string
+                self.client = BleakClient(self.device.address)
             await asyncio.wait_for(self.client.connect(), timeout=timeout)
             self._connected = True
             logger.info(f"Connected to {self.name} ({self.mac_address})")
         except asyncio.TimeoutError:
+            # Ensure cleanup on timeout
+            if self.client:
+                try:
+                    await self.client.disconnect()
+                except:
+                    pass
+                self.client = None
+            self._connected = False
             raise TimeoutError(f"Connection timeout after {timeout}s")
         except BleakError as e:
+            # Ensure cleanup on error
+            if self.client:
+                try:
+                    await self.client.disconnect()
+                except:
+                    pass
+                self.client = None
+            self._connected = False
             raise ConnectionError(f"Failed to connect: {e}")
 
     async def disconnect(self) -> None:
-        if self.client and self.client.is_connected:
-            await self.client.disconnect()
-            self._connected = False
-            logger.info(f"Disconnected from {self.name}")
+        if self.client:
+            try:
+                if self.client.is_connected:
+                    await self.client.disconnect()
+            except BleakError as e:
+                # Device may already be disconnected
+                logger.debug(f"Disconnect error (device may already be disconnected): {e}")
+            finally:
+                self._connected = False
 
     async def __aenter__(self) -> "FlowerCareDevice":
         await self.connect()
@@ -58,7 +86,12 @@ class FlowerCareDevice:
     async def __aexit__(
         self, exc_type: Optional[type], exc_val: Optional[Exception], exc_tb: Optional[object]
     ) -> None:
-        await self.disconnect()
+        # Always attempt to disconnect, even if an exception occurred
+        try:
+            await self.disconnect()
+        except Exception as e:
+            # Log but don't raise - we don't want to mask the original exception
+            logger.debug(f"Error during context manager disconnect: {e}")
 
     async def _write_command(self, command: bytes) -> None:
         if not self.is_connected or self.client is None:
