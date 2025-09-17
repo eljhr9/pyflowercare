@@ -108,7 +108,7 @@ asyncio.run(main())
 ### FlowerCareScanner
 
 - `scan_for_devices(timeout=10.0)`: Scan for FlowerCare devices
-- `find_device_by_mac(mac_address, timeout=10.0)`: Find specific device by MAC address
+- `find_device_by_address(mac_address, timeout=10.0)`: Find specific device by MAC address
 - `scan_continuously(callback, timeout=None)`: Continuous scanning with callback
 - `scan_stream(timeout=None)`: Async generator for device discovery
 

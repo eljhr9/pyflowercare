@@ -355,7 +355,7 @@ TEST_DEVICE_MAC = "AA:BB:CC:DD:EE:FF"  # Your device MAC
 
 async def test_with_real_device():
     scanner = FlowerCareScanner() 
-    device = await scanner.find_device_by_mac(TEST_DEVICE_MAC)
+    device = await scanner.find_device_by_address(TEST_DEVICE_MAC)
     
     if device:
         async with device:

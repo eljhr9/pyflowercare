@@ -150,7 +150,7 @@ for device in devices:
 ```python
 # Find device by MAC address
 target_mac = "C4:7C:8D:6A:8E:CA"
-device = await scanner.find_device_by_mac(target_mac)
+device = await scanner.find_device_by_address(target_mac)
 
 if device:
     async with device:

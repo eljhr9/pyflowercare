@@ -159,46 +159,46 @@ class TestFlowerCareScanner:
                 assert "Scan timeout after 1.0s" in str(exc_info.value)
 
     @pytest.mark.asyncio
-    async def test_find_device_by_mac_success(self, mock_ble_device):
-        """Test finding device by MAC address."""
+    async def test_find_device_by_address_success(self, mock_ble_device):
+        """Test finding device by MAC address without scanning."""
         scanner = FlowerCareScanner()
 
-        with patch.object(scanner, "scan_for_devices") as mock_scan:
-            mock_device = FlowerCareDevice(mock_ble_device)
-            mock_scan.return_value = [mock_device]
+        result = await scanner.find_device_by_address("AA:BB:CC:DD:EE:FF", timeout=1.0)
 
-            result = await scanner.find_device_by_mac("aa:bb:cc:dd:ee:ff", timeout=1.0)
-
-            assert result == mock_device
-            mock_scan.assert_called_once_with(1.0)
+        assert result is not None
+        assert result.mac_address == "AA:BB:CC:DD:EE:FF"
 
     @pytest.mark.asyncio
-    async def test_find_device_by_mac_not_found(self, mock_ble_device):
-        """Test finding device by MAC address when not found."""
+    async def test_find_device_by_address_invalid_mac(self, mock_ble_device):
+        """Test finding device with invalid MAC address."""
         scanner = FlowerCareScanner()
-        mock_ble_device.address = "FF:EE:DD:CC:BB:AA"  # Different address
 
-        with patch.object(scanner, "scan_for_devices") as mock_scan:
-            mock_device = FlowerCareDevice(mock_ble_device)
-            mock_scan.return_value = [mock_device]
+        # Test invalid MAC addresses
+        result = await scanner.find_device_by_address("invalid_mac", timeout=1.0)
+        assert result is None
 
-            result = await scanner.find_device_by_mac("aa:bb:cc:dd:ee:ff", timeout=1.0)
+        result = await scanner.find_device_by_address("AA:BB:CC:DD:EE", timeout=1.0)  # Too short
+        assert result is None
 
-            assert result is None
+        result = await scanner.find_device_by_address("", timeout=1.0)  # Empty
+        assert result is None
 
     @pytest.mark.asyncio
-    async def test_find_device_by_mac_case_insensitive(self, mock_ble_device):
+    async def test_find_device_by_address_case_insensitive(self, mock_ble_device):
         """Test finding device by MAC address (case insensitive)."""
         scanner = FlowerCareScanner()
 
-        with patch.object(scanner, "scan_for_devices") as mock_scan:
-            mock_device = FlowerCareDevice(mock_ble_device)
-            mock_scan.return_value = [mock_device]
+        # Test with different case variations
+        result_upper = await scanner.find_device_by_address("AA:BB:CC:DD:EE:FF", timeout=1.0)
+        result_lower = await scanner.find_device_by_address("aa:bb:cc:dd:ee:ff", timeout=1.0)
+        result_mixed = await scanner.find_device_by_address("Aa:Bb:Cc:Dd:Ee:Ff", timeout=1.0)
 
-            # Test with uppercase MAC
-            result = await scanner.find_device_by_mac("AA:BB:CC:DD:EE:FF", timeout=1.0)
-
-            assert result == mock_device
+        assert result_upper is not None
+        assert result_lower is not None
+        assert result_mixed is not None
+        assert result_upper.mac_address == "AA:BB:CC:DD:EE:FF"
+        assert result_lower.mac_address == "AA:BB:CC:DD:EE:FF"
+        assert result_mixed.mac_address == "AA:BB:CC:DD:EE:FF"
 
     @pytest.mark.asyncio
     async def test_scan_continuously_with_timeout(self, mock_ble_device):

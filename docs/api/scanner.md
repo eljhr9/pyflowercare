@@ -83,9 +83,9 @@ for _ in range(3):
 print(f"Total unique devices: {len(all_devices)}")
 ```
 
-### `find_device_by_mac(mac_address, timeout=10.0)`
+### `find_device_by_address(mac_address, timeout=10.0)`
 ```python
-async def find_device_by_mac(self, mac_address: str, timeout: float = 10.0) -> Optional[FlowerCareDevice]
+async def find_device_by_address(self, mac_address: str, timeout: float = 10.0) -> Optional[FlowerCareDevice]
 ```
 Searches for a specific device by its MAC address.
 
@@ -101,7 +101,7 @@ Searches for a specific device by its MAC address.
 ```python
 # Find specific device
 target_mac = "C4:7C:8D:6A:8E:CA"
-device = await scanner.find_device_by_mac(target_mac, timeout=15.0)
+device = await scanner.find_device_by_address(target_mac, timeout=15.0)
 
 if device:
     print(f"Found target device: {device.name}")
@@ -118,7 +118,7 @@ else:
 ```python
 # Connect to previously discovered device
 known_mac = "C4:7C:8D:6A:8E:CA"
-device = await scanner.find_device_by_mac(known_mac)
+device = await scanner.find_device_by_address(known_mac)
 
 if device:
     async with device:
@@ -130,7 +130,7 @@ if device:
 ```python
 # Verify device is still reachable
 async def check_device_availability(mac_address):
-    device = await scanner.find_device_by_mac(mac_address, timeout=5.0)
+    device = await scanner.find_device_by_address(mac_address, timeout=5.0)
     return device is not None
 
 is_available = await check_device_availability("C4:7C:8D:6A:8E:CA")
@@ -537,7 +537,7 @@ class PlantMonitoringSystem:
         results = {}
         
         for mac, plant_info in self.known_plants.items():
-            device = await self.scanner.find_device_by_mac(mac, timeout=10.0)
+            device = await self.scanner.find_device_by_address(mac, timeout=10.0)
             
             if device:
                 try:

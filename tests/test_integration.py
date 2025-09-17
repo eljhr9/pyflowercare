@@ -186,35 +186,26 @@ class TestIntegration:
             mock_bleak_client.disconnect.assert_called()
 
     @pytest.mark.asyncio
-    async def test_find_device_by_mac_workflow(self, mock_ble_device):
-        """Test finding a specific device by MAC address."""
+    async def test_find_device_by_address_workflow(self, mock_ble_device):
+        """Test finding a specific device by MAC address without scanning."""
         scanner = FlowerCareScanner()
         target_mac = "AA:BB:CC:DD:EE:FF"
-        mock_ble_device.address = target_mac
 
-        with patch("pyflowercare.scanner.BleakScanner") as mock_scanner_class:
-            mock_scanner_instance = AsyncMock()
-            mock_scanner_class.return_value = mock_scanner_instance
+        # Test finding device with valid MAC - should create device directly
+        found_device = await scanner.find_device_by_address(target_mac)
+        assert found_device is not None
+        assert isinstance(found_device, FlowerCareDevice)
+        assert found_device.mac_address == target_mac
 
-            def simulate_detection(callback_func):
-                from bleak.backends.scanner import AdvertisementData
+        # Test finding device with another valid MAC - should also work
+        another_device = await scanner.find_device_by_address("FF:FF:FF:FF:FF:FF")
+        assert another_device is not None
+        assert isinstance(another_device, FlowerCareDevice)
+        assert another_device.mac_address == "FF:FF:FF:FF:FF:FF"
 
-                mock_advertisement = Mock(spec=AdvertisementData)
-                mock_advertisement.service_uuids = ["0000fe95-0000-1000-8000-00805f9b34fb"]
-                callback_func(mock_ble_device, mock_advertisement)
-                return mock_scanner_instance
-
-            mock_scanner_class.side_effect = simulate_detection
-
-            # Test finding existing device
-            found_device = await scanner.find_device_by_mac(target_mac)
-            assert found_device is not None
-            assert isinstance(found_device, FlowerCareDevice)
-            assert found_device.mac_address == target_mac
-
-            # Test finding non-existing device
-            not_found = await scanner.find_device_by_mac("FF:FF:FF:FF:FF:FF")
-            assert not_found is None
+        # Test finding device with invalid MAC - should return None
+        invalid_device = await scanner.find_device_by_address("invalid_mac")
+        assert invalid_device is None
 
     def test_pydantic_model_integration(self):
         """Test that Pydantic models work correctly together."""

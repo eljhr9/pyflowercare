@@ -104,7 +104,7 @@ Common causes and solutions:
 
 **By MAC address** (if known):
 ```python
-device = await scanner.find_device_by_mac("C4:7C:8D:6A:8E:CA")
+device = await scanner.find_device_by_address("C4:7C:8D:6A:8E:CA")
 ```
 
 **By name pattern**:

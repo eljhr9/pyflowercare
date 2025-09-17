@@ -227,7 +227,7 @@ for name, data in results:
 
 ```python
 # Find specific device by MAC address
-target_device = await scanner.find_device_by_mac("C4:7C:8D:6A:8E:CA")
+target_device = await scanner.find_device_by_address("C4:7C:8D:6A:8E:CA")
 
 # Or by name pattern
 devices = await scanner.scan_for_devices()
