@@ -443,5 +443,12 @@ class FlowerCareDevice:
             return historical_entries
 
         self._last_history_complete = True
-        logger.info(f"Historical data retrieval complete. Found {len(historical_entries)} entries")
+        valid = len(historical_entries)
+        # `num_entries` is the slot count the device reports; many slots can be
+        # empty/unwritten (all-zero or 0xFF) and are skipped, so valid <= reported.
+        read = min(num_entries, MAX_HISTORY_ENTRIES)
+        logger.info(
+            f"Historical data retrieval complete: {valid} valid entries "
+            f"({num_entries} reported, {read - valid} empty/unwritten slots skipped)"
+        )
         return historical_entries
