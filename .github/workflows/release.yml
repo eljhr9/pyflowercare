@@ -50,8 +50,10 @@ jobs:
           fi
       - name: Build
         run: poetry build
+      - name: Install twine
+        run: pipx install twine
       - name: Check artifacts
-        run: poetry run twine check dist/*
+        run: twine check dist/*
       - uses: actions/upload-artifact@v4
         with:
           name: dist
