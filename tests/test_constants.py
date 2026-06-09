@@ -67,7 +67,6 @@ class TestConstants:
         """Test COMMANDS structure and values."""
         expected_keys = [
             "REALTIME_DATA",
-            "HISTORY_DATA",
             "HISTORY_READ_INIT",
             "HISTORY_READ_ENTRY",
             "BLINK_LED",
@@ -84,9 +83,8 @@ class TestConstants:
     def test_commands_values(self):
         """Test specific COMMANDS values."""
         assert COMMANDS["REALTIME_DATA"] == bytes([0xA0, 0x1F])
-        assert COMMANDS["HISTORY_DATA"] == bytes([0xA0, 0x00])
-        assert COMMANDS["HISTORY_READ_INIT"] == bytes([0xA0, 0x00])
-        assert COMMANDS["HISTORY_READ_ENTRY"] == bytes([0xA1, 0x00])
+        assert COMMANDS["HISTORY_READ_INIT"] == bytes([0xA0, 0x00, 0x00])
+        assert COMMANDS["HISTORY_READ_ENTRY"] == bytes([0xA1, 0x00, 0x00])
         assert COMMANDS["BLINK_LED"] == bytes([0xFD, 0xFF])
 
     def test_device_name_prefix(self):
@@ -106,9 +104,6 @@ class TestConstants:
         """Test UUID consistency between constants."""
         # ROOT_SERVICE and ADVERTISEMENT_UUID should be the same
         assert SERVICE_UUIDS["ROOT_SERVICE"] == ADVERTISEMENT_UUID
-
-        # HISTORY_DATA and HISTORY_READ_INIT commands should be the same
-        assert COMMANDS["HISTORY_DATA"] == COMMANDS["HISTORY_READ_INIT"]
 
     def test_constants_immutability(self):
         """Test that constants are properly typed as Final."""

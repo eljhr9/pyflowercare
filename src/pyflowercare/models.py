@@ -12,17 +12,23 @@ class SensorData(BaseModel):
     temperature: float = Field(
         ..., description="Temperature in degrees Celsius", ge=-50.0, le=100.0
     )
-    brightness: int = Field(..., description="Light brightness in lux", ge=0)
+    brightness: Optional[int] = Field(
+        None, description="Light brightness in lux (None if not measured)", ge=0
+    )
     moisture: int = Field(..., description="Soil moisture percentage", ge=0, le=100)
-    conductivity: int = Field(..., description="Soil conductivity in µS/cm", ge=0)
+    conductivity: Optional[int] = Field(
+        None, description="Soil conductivity in µS/cm (None if not measured)", ge=0
+    )
     timestamp: Optional[datetime] = Field(None, description="Timestamp when the data was collected")
 
     def __str__(self) -> str:
+        brightness = "N/A" if self.brightness is None else f"{self.brightness} lux"
+        conductivity = "N/A" if self.conductivity is None else f"{self.conductivity} µS/cm"
         return (
             f"Temperature: {self.temperature}°C, "
-            f"Brightness: {self.brightness} lux, "
+            f"Brightness: {brightness}, "
             f"Moisture: {self.moisture}%, "
-            f"Conductivity: {self.conductivity} µS/cm"
+            f"Conductivity: {conductivity}"
         )
 
 

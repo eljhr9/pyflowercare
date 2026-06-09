@@ -18,7 +18,10 @@ class FlowerCareScanner:
     """Scanner for discovering FlowerCare devices via Bluetooth."""
 
     def __init__(self) -> None:
-        self.scanner: BleakScanner = BleakScanner()
+        # A fresh BleakScanner is created per scan operation (see scan_* methods).
+        # No scanner is instantiated here to avoid initializing the BLE backend
+        # before it is actually needed.
+        pass
 
     @staticmethod
     def _is_flowercare_device(device: BLEDevice, advertisement_data: AdvertisementData) -> bool:
@@ -54,56 +57,8 @@ class FlowerCareScanner:
 
         return devices
 
-    # async def find_device_by_address(
-    #     self, mac_address: str, timeout: float = 10.0
-    # ) -> Optional[FlowerCareDevice]:
-    #     """Find a FlowerCare device by MAC address without scanning.
-    #
-    #     Creates a FlowerCareDevice directly from the MAC address for direct connection.
-    #     This bypasses the scanning process and attempts to connect directly.
-    #
-    #     Args:
-    #         mac_address: The MAC address of the device to find
-    #         timeout: Timeout parameter (kept for compatibility but not used)
-    #
-    #     Returns:
-    #         FlowerCareDevice instance or None if MAC address is invalid
-    #     """
-    #     # Normalize MAC address format
-    #     mac_address = mac_address.upper().strip()
-    #
-    #     # Basic MAC address validation (MAC should be 17 chars with colons: XX:XX:XX:XX:XX:XX)
-    #     if not mac_address or len(mac_address) != 17 or mac_address.count(":") != 5:
-    #         return None
-    #
-    #     # Validate MAC address format with regex-like logic
-    #     try:
-    #         parts = mac_address.split(":")
-    #         if len(parts) != 6:
-    #             return None
-    #         for part in parts:
-    #             if len(part) != 2 or not all(c in "0123456789ABCDEF" for c in part):
-    #                 return None
-    #     except Exception:
-    #         return None
-    #
-    #     # Create a simple BLEDevice-like object for direct connection
-    #     # We'll create a minimal class that has the necessary attributes
-    #     class DirectBLEDevice:
-    #         def __init__(self, address: str):
-    #             self.address = address
-    #             self.name = None  # type: Optional[str]
-    #
-    #     try:
-    #         # Create device wrapper for direct connection
-    #         direct_device = DirectBLEDevice(mac_address)
-    #         # Type ignore because we're creating a duck-typed BLEDevice
-    #         return FlowerCareDevice(direct_device)  # type: ignore[arg-type]
-    #     except Exception:
-    #         return None
-
     async def find_device_by_address(
-            self, device_address: str, timeout: float = 10.0
+        self, device_address: str, timeout: float = 10.0
     ) -> Optional[FlowerCareDevice]:
         """Find a FlowerCare device by MAC or UUID-like address without scanning.
 
@@ -124,9 +79,7 @@ class FlowerCareScanner:
         # Validate MAC format (XX:XX:XX:XX:XX:XX)
         mac_pattern = re.compile(r"^([0-9A-F]{2}:){5}[0-9A-F]{2}$")
         # Validate UUID format (8-4-4-4-12 hex digits)
-        uuid_pattern = re.compile(
-            r"^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$"
-        )
+        uuid_pattern = re.compile(r"^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$")
 
         if not (mac_pattern.match(normalized) or uuid_pattern.match(normalized)):
             return None

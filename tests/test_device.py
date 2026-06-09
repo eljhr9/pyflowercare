@@ -345,3 +345,99 @@ class TestFlowerCareDevice:
 
         assert isinstance(result, list)
         assert len(result) == 0
+
+
+class TestParseHistoryEntry:
+    """Parse real 16-byte history records captured from hardware.
+
+    Byte patterns are taken verbatim from a live FlowerCare (firmware 3.3.6).
+    Device epoch for these captures was 256895 seconds.
+    """
+
+    EPOCH = 256895
+
+    def _device(self, mock_ble_device):
+        return FlowerCareDevice(mock_ble_device)
+
+    def test_fully_valid_entry(self, mock_ble_device):
+        """A complete record parses all fields (incl. signed temperature)."""
+        device = self._device(mock_ble_device)
+        raw = bytes.fromhex("90210300d600031100000004310182ff")
+        entry = device._parse_history_entry(raw, self.EPOCH)
+
+        assert entry is not None
+        assert entry.sensor_data.temperature == 21.4
+        assert entry.sensor_data.brightness == 17
+        assert entry.sensor_data.moisture == 4
+        assert entry.sensor_data.conductivity == 305
+
+    def test_unmeasured_conductivity_becomes_none(self, mock_ble_device):
+        """Valid reading with a 0xFFFF conductivity sentinel -> conductivity None."""
+        device = self._device(mock_ble_device)
+        raw = bytes.fromhex("70e60300090103af06000012ffffffff")
+        entry = device._parse_history_entry(raw, self.EPOCH)
+
+        assert entry is not None
+        assert entry.sensor_data.temperature == 26.5
+        assert entry.sensor_data.brightness == 1711
+        assert entry.sensor_data.moisture == 18
+        assert entry.sensor_data.conductivity is None  # 0xFFFF sentinel
+
+    def test_implausible_brightness_becomes_none(self, mock_ble_device):
+        """Out-of-range brightness sentinel -> brightness None, other fields kept."""
+        device = self._device(mock_ble_device)
+        raw = bytes.fromhex("a02f0300dc0003a00084ff1fffffffff")
+        entry = device._parse_history_entry(raw, self.EPOCH)
+
+        assert entry is not None
+        assert entry.sensor_data.temperature == 22.0
+        assert entry.sensor_data.moisture == 31
+        assert entry.sensor_data.brightness is None  # > documented max lux
+        assert entry.sensor_data.conductivity is None
+
+    def test_incomplete_slot_skipped(self, mock_ble_device):
+        """A slot with moisture=0xFF is incompletely written -> skipped (None)."""
+        device = self._device(mock_ble_device)
+        raw = bytes.fromhex("60d803000bd5afb3ffffffffffffffff")
+        assert device._parse_history_entry(raw, self.EPOCH) is None
+
+    def test_all_ff_slot_skipped(self, mock_ble_device):
+        device = self._device(mock_ble_device)
+        assert device._parse_history_entry(b"\xff" * 16, self.EPOCH) is None
+
+    def test_all_zero_slot_skipped(self, mock_ble_device):
+        """Empty slots (timestamp 0) are skipped."""
+        device = self._device(mock_ble_device)
+        assert device._parse_history_entry(b"\x00" * 16, self.EPOCH) is None
+
+    def test_zero_payload_with_timestamp_skipped(self, mock_ble_device):
+        """A valid timestamp but all-zero payload is a reserved-but-empty slot."""
+        device = self._device(mock_ble_device)
+        raw = bytes.fromhex("90210300") + b"\x00" * 12  # ts=205200, payload all zero
+        assert device._parse_history_entry(raw, self.EPOCH) is None
+
+    def test_real_zero_celsius_reading_kept(self, mock_ble_device):
+        """A genuine 0.0C reading with non-zero other fields is NOT dropped."""
+        device = self._device(mock_ble_device)
+        # ts, temp=0x0000 (0.0C), light=28, moisture=24, cond=153 (real payload)
+        raw = bytes.fromhex("109203000000031c0000001899000000")
+        entry = device._parse_history_entry(raw, self.EPOCH)
+
+        assert entry is not None
+        assert entry.sensor_data.temperature == 0.0
+        assert entry.sensor_data.moisture == 24
+        assert entry.sensor_data.conductivity == 153
+
+    def test_short_buffer_skipped(self, mock_ble_device):
+        device = self._device(mock_ble_device)
+        assert device._parse_history_entry(b"\x01\x02\x03", self.EPOCH) is None
+
+    def test_negative_temperature(self, mock_ble_device):
+        """Signed temperature handles sub-zero readings (e.g. -5.0C)."""
+        device = self._device(mock_ble_device)
+        # ts=205200, temp=0xFFCE (-50 -> -5.0C), light=17, moisture=4, cond=305
+        raw = bytes.fromhex("90210300ceff031100000004310182ff")
+        entry = device._parse_history_entry(raw, self.EPOCH)
+
+        assert entry is not None
+        assert entry.sensor_data.temperature == -5.0
