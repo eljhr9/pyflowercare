@@ -1,0 +1,104 @@
+name: CI & Release
+
+# test:  runs on every push and pull request
+# build + publish: run only on version tags (vX.Y.Z)
+#   publish-testpypi -> TestPyPI automatically
+#   publish-pypi     -> production PyPI, gated by the "pypi" environment
+#                       (configure required reviewers in repo Settings > Environments)
+#
+# Required repository secrets (Settings > Secrets and variables > Actions):
+#   TEST_PYPI_TOKEN - TestPyPI API token (starts with "pypi-")
+#   PYPI_TOKEN      - production PyPI API token (starts with "pypi-")
+
+on:
+  push:
+    branches: ["master"]
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Poetry
+        run: pipx install poetry
+      - name: Install dependencies
+        run: poetry install --with dev
+      - name: Run tests
+        run: poetry run pytest -q --ignore=examples
+
+  build:
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Poetry
+        run: pipx install poetry
+      - name: Verify tag matches package version
+        run: |
+          PKG_VERSION=$(poetry version --short)
+          if [ "refs/tags/v$PKG_VERSION" != "$GITHUB_REF" ]; then
+            echo "Tag $GITHUB_REF != package version v$PKG_VERSION"; exit 1
+          fi
+      - name: Build
+        run: poetry build
+      - name: Check artifacts
+        run: poetry run twine check dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish-testpypi:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/project/pyflowercare/
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install twine
+        run: pipx install twine
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Upload to TestPyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
+        run: twine upload --non-interactive --repository-url https://test.pypi.org/legacy/ dist/*
+
+  publish-pypi:
+    needs: publish-testpypi
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/pyflowercare/
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install twine
+        run: pipx install twine
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Upload to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: twine upload --non-interactive dist/*

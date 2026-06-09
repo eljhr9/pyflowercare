@@ -272,4 +272,4 @@ class TestIntegration:
 
         logger = get_logger("test")
         assert logger is not None
-        assert logger.name == "flowercare.test"
+        assert logger.name == "pyflowercare.test"

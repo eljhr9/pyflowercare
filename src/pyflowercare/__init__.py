@@ -10,7 +10,7 @@ from .logging import setup_logging
 from .models import DeviceInfo, HistoricalEntry, SensorData
 from .scanner import FlowerCareScanner
 
-__version__: str = "0.4.1"
+__version__: str = "0.4.2"
 __all__ = [
     "FlowerCareDevice",
     "FlowerCareScanner",

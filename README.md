@@ -44,9 +44,12 @@ async def main():
         async with device:
             sensor_data = await device.read_sensor_data()
             print(f"Temperature: {sensor_data.temperature}°C")
-            print(f"Brightness: {sensor_data.brightness} lux")
             print(f"Moisture: {sensor_data.moisture}%")
-            print(f"Conductivity: {sensor_data.conductivity} µS/cm")
+            # brightness/conductivity may be None ("not measured")
+            if sensor_data.brightness is not None:
+                print(f"Brightness: {sensor_data.brightness} lux")
+            if sensor_data.conductivity is not None:
+                print(f"Conductivity: {sensor_data.conductivity} µS/cm")
 
 asyncio.run(main())
 ```
@@ -108,7 +111,7 @@ asyncio.run(main())
 ### FlowerCareScanner
 
 - `scan_for_devices(timeout=10.0)`: Scan for FlowerCare devices
-- `find_device_by_address(mac_address, timeout=10.0)`: Find specific device by MAC address
+- `find_device_by_address(device_address, timeout=10.0)`: Build a device directly from an address — MAC (`C4:7C:8D:...`) or UUID-style identifier (macOS) — without scanning. Returns `None` if the address is malformed.
 - `scan_continuously(callback, timeout=None)`: Continuous scanning with callback
 - `scan_stream(timeout=None)`: Async generator for device discovery
 
@@ -118,17 +121,20 @@ asyncio.run(main())
 - `disconnect()`: Disconnect from device
 - `read_sensor_data()`: Read current sensor measurements
 - `get_device_info()`: Get device information (name, MAC, battery, firmware)
-- `get_historical_data()`: Get stored historical measurements
+- `get_historical_data()`: Get stored historical measurements. On a mid-read BLE drop it reconnects and resumes; if it still can't finish it returns the entries collected so far. Check `last_history_complete` to tell a full read from a partial one.
+- `last_history_complete` (property): `True` if the last `get_historical_data()` ran to completion, `False` if it returned partial data after an interrupted read.
 - `blink_led()`: Make device LED blink
 
 ### Data Models
 
 #### SensorData
-- `temperature`: Temperature in Celsius
-- `brightness`: Light intensity in lux
+- `temperature`: Temperature in Celsius (signed; negative readings are valid)
+- `brightness`: Light intensity in lux, or `None` if the sensor did not measure it
 - `moisture`: Soil moisture percentage
-- `conductivity`: Soil conductivity in µS/cm
+- `conductivity`: Soil conductivity in µS/cm, or `None` if the sensor did not measure it
 - `timestamp`: Measurement timestamp
+
+> In historical data, slots the sensor never fully wrote are skipped, and unmeasured `brightness`/`conductivity` fields come back as `None` rather than as sentinel values. Guard for `None` before using them.
 
 #### DeviceInfo
 - `name`: Device name

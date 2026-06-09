@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyflowercare"
-version = "0.4.1"
+version = "0.4.2"
 description = "Python library for communicating with FlowerCare (Xiaomi MiFlora) Bluetooth plant sensors"
 authors = ["Ilya Redkolis <illyaredkolis@gmail.com>"]
 readme = "README.md"

@@ -83,7 +83,7 @@ class TestLogging:
             result = get_logger("test")
 
             assert result == mock_logger
-            mock_get_logger.assert_called_once_with("flowercare.test")
+            mock_get_logger.assert_called_once_with("pyflowercare.test")
 
     def test_get_logger_different_names(self):
         """Test getting loggers with different names."""
@@ -95,7 +95,7 @@ class TestLogging:
             names = ["device", "scanner", "models"]
             for name in names:
                 get_logger(name)
-                mock_get_logger.assert_called_with(f"flowercare.{name}")
+                mock_get_logger.assert_called_with(f"pyflowercare.{name}")
 
     def test_disable_bleak_logs(self):
         """Test disabling Bleak logs."""
@@ -127,7 +127,7 @@ class TestLogging:
 
         # Verify we got a logger
         assert isinstance(logger, logging.Logger)
-        assert logger.name == f"flowercare.{logger_name}"
+        assert logger.name == f"pyflowercare.{logger_name}"
 
     def test_logging_levels(self):
         """Test different logging levels."""

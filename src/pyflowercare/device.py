@@ -2,7 +2,7 @@ import asyncio
 import logging
 import struct
 from datetime import datetime, timedelta
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from bleak import BleakClient, BleakError
 from bleak.backends.device import BLEDevice
@@ -15,7 +15,6 @@ from .constants import (
     MAX_VALID_BRIGHTNESS,
     MAX_VALID_CONDUCTIVITY,
     RECONNECT_SETTLE_DELAY,
-    SERVICE_UUIDS,
 )
 from .exceptions import ConnectionError, DataParsingError, DeviceError, TimeoutError
 from .models import DeviceInfo, HistoricalEntry, SensorData
@@ -64,8 +63,10 @@ class FlowerCareDevice:
                 # This is a proper BLEDevice from bleak
                 self.client = BleakClient(self.device)
             else:
-                # This is our custom DirectBLEDevice, use address string
-                self.client = BleakClient(self.device.address)
+                # This is our custom duck-typed DirectBLEDevice from
+                # find_device_by_address; connect via its address string. mypy
+                # sees self.device as always-BLEDevice and flags this dead.
+                self.client = BleakClient(self.device.address)  # type: ignore[unreachable]
             await asyncio.wait_for(self.client.connect(), timeout=timeout)
             self._connected = True
 
@@ -205,8 +206,14 @@ class FlowerCareDevice:
         await self._write_command(COMMANDS["BLINK_LED"])
 
     async def _read_device_epoch(self) -> int:
-        """Read the device's internal clock (seconds since boot)."""
-        data = await self._read_characteristic(CHARACTERISTIC_UUIDS["EPOCH_TIME"])
+        """Read the device's internal clock (seconds since boot).
+
+        Uses direct client calls so a mid-operation disconnect surfaces as a
+        raw BleakError, letting the init phase reconnect and retry.
+        """
+        if self.client is None or not self.client.is_connected:
+            raise ConnectionError("Device not connected")
+        data = await self.client.read_gatt_char(CHARACTERISTIC_UUIDS["EPOCH_TIME"])
         return int(struct.unpack("<I", data)[0])
 
     async def _begin_history_read(self) -> int:
@@ -242,20 +249,29 @@ class FlowerCareDevice:
         await self.client.write_gatt_char(CHARACTERISTIC_UUIDS["HISTORY_CONTROL"], cmd)
         return bytes(await self.client.read_gatt_char(CHARACTERISTIC_UUIDS["HISTORY_DATA"]))
 
-    async def _resume_history_read(self) -> None:
-        """Reconnect after a mid-retrieval drop and re-enter history-read mode."""
+    async def _reconnect_device(self) -> None:
+        """Disconnect and reconnect, pausing for the BLE stack to settle.
+
+        Reconnecting immediately after a drop typically times out, so we let the
+        peripheral re-advertise and the old link release first.
+        """
         try:
             await self.disconnect()
         except Exception:
             pass
-        # Let the peripheral re-advertise and the BLE stack release the old link;
-        # reconnecting immediately after a drop typically times out.
         await asyncio.sleep(RECONNECT_SETTLE_DELAY)
         await self.connect()
+
+    async def _resume_history_read(self) -> None:
+        """Reconnect after a mid-retrieval drop and re-enter history-read mode."""
+        await self._reconnect_device()
         await self._begin_history_read()  # re-init; the re-read entry count is ignored
 
     def _parse_history_entry(
-        self, raw: bytes, device_epoch_seconds: int
+        self,
+        raw: bytes,
+        device_epoch_seconds: int,
+        reference_time: Optional[datetime] = None,
     ) -> Optional[HistoricalEntry]:
         """Parse one raw 16-byte history record.
 
@@ -263,6 +279,10 @@ class FlowerCareDevice:
         unmeasured bytes with 0xFF). Brightness/conductivity values above the
         sensor's documented range are reported as None ("not measured") rather
         than as nonsense sentinel numbers.
+
+        `reference_time` anchors the relative device timestamps to wall-clock
+        time; pass a single value captured once per retrieval so every entry
+        shares the same reference and timestamps don't drift across a long read.
         """
         if len(raw) < 16 or all(b == 0xFF for b in raw):
             return None
@@ -289,9 +309,8 @@ class FlowerCareDevice:
         brightness = struct.unpack("<I", raw[7:10] + b"\x00")[0]  # 3-byte LE + padding
         conductivity = struct.unpack("<H", raw[12:14])[0]
 
-        actual_timestamp = datetime.now() - timedelta(
-            seconds=device_epoch_seconds - device_timestamp
-        )
+        reference = reference_time if reference_time is not None else datetime.now()
+        actual_timestamp = reference - timedelta(seconds=device_epoch_seconds - device_timestamp)
         sensor_data = SensorData(
             temperature=temperature,
             brightness=brightness if brightness <= MAX_VALID_BRIGHTNESS else None,
@@ -314,10 +333,40 @@ class FlowerCareDevice:
         try:
             logger.info("Starting historical data retrieval")
 
-            device_epoch_seconds = await self._read_device_epoch()
-            logger.debug(f"Device epoch time: {device_epoch_seconds} seconds")
+            # Anchor all entries to one wall-clock reference so timestamps stay
+            # consistent even if the read spans reconnects.
+            reference_time = datetime.now()
 
-            num_entries = await self._begin_history_read()
+            # Init phase (epoch + enter history mode) with reconnect-resume:
+            # some devices drop right after connecting, before the entry loop.
+            init_reconnects = 0
+            while True:
+                try:
+                    device_epoch_seconds = await self._read_device_epoch()
+                    logger.debug(f"Device epoch time: {device_epoch_seconds} seconds")
+                    num_entries = await self._begin_history_read()
+                    break
+                except (ConnectionError, BleakError, TimeoutError) as error:
+                    if init_reconnects >= MAX_HISTORY_RECONNECTS:
+                        logger.warning(
+                            f"Giving up initializing history read after "
+                            f"{init_reconnects} reconnect attempt(s): {error}"
+                        )
+                        return historical_entries
+                    init_reconnects += 1
+                    logger.warning(
+                        f"Connection lost initializing history read; reconnecting "
+                        f"({init_reconnects}/{MAX_HISTORY_RECONNECTS}): {error}"
+                    )
+                    try:
+                        await self._reconnect_device()
+                    except (ConnectionError, BleakError, TimeoutError) as reconnect_err:
+                        logger.warning(
+                            f"Reconnect failed during history init: {reconnect_err}; "
+                            f"returning no entries"
+                        )
+                        return historical_entries
+
             logger.info(f"Number of Historical Entries: {num_entries}")
 
             if num_entries <= 0:
@@ -335,11 +384,15 @@ class FlowerCareDevice:
                     try:
                         raw = await self._read_history_entry(i)
                         logger.debug(f"Entry #{i} raw: {raw.hex()}")
-                        entry = self._parse_history_entry(raw, device_epoch_seconds)
+                        entry = self._parse_history_entry(raw, device_epoch_seconds, reference_time)
                         if entry is not None:
                             historical_entries.append(entry)
                             logger.debug(f"Historical Entry #{i}: {entry.sensor_data}")
                         i += 1
+                        # Healthy read - the link is alive again, so refresh the
+                        # reconnect budget (it caps *consecutive* drops, letting a
+                        # large history that drops periodically still drain fully).
+                        reconnects = 0
                     except (DeviceError, struct.error, ValueError, OSError) as error:
                         # A single unparseable entry - skip it and move on.
                         logger.debug(f"Skipping unparseable entry {i}: {error}")
