@@ -97,7 +97,7 @@ print(f"Measured at: {data.timestamp}")          # datetime
 | Sensor | Range | Good Values | Notes |
 |--------|-------|-------------|-------|
 | **Temperature** | -10°C to 60°C | 18-24°C for most plants | Air temperature near plant |
-| **Brightness** | 0 to 120,000 lux | 10,000-50,000 for most plants | Direct sunlight ≈ 100,000 lux |
+| **Brightness** | 0 to 100,000 lux | 10,000-50,000 for most plants | Direct sunlight ≈ 100,000 lux; may be `None` if not measured |
 | **Soil Moisture** | 0% to 100% | 30-70% for most plants | 0% = bone dry, 100% = waterlogged |
 | **Conductivity** | 0 to 10,000 µS/cm | 500-2000 µS/cm | Higher = more nutrients |
 
@@ -359,7 +359,7 @@ async with device:
 
 You now understand the fundamentals! Continue with:
 
-- **[Device Discovery](../user-guide/device-discovery.md)**: Advanced scanning techniques
-- **[Reading Sensor Data](../user-guide/reading-data.md)**: Deep dive into sensor measurements
 - **[Examples](../examples/basic-usage.md)**: Complete working examples
-- **[API Reference](../api/device.md)**: Detailed API documentation
+- **[FlowerCareScanner API](../api/scanner.md)**: Advanced scanning techniques
+- **[FlowerCareDevice API](../api/device.md)**: Deep dive into reading sensor and historical data
+- **[Data Models](../api/models.md)**: Sensor data fields and interpretation

@@ -217,7 +217,7 @@ Once installed, proceed to:
 
 - **[Quick Start Guide](quick-start.md)**: Get up and running in minutes
 - **[First Steps](first-steps.md)**: Learn the fundamentals
-- **[Device Discovery](../user-guide/device-discovery.md)**: Find your FlowerCare devices
+- **[FlowerCareScanner API](../api/scanner.md)**: Find your FlowerCare devices
 
 ## Development Installation
 

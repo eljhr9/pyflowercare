@@ -2,7 +2,7 @@
 
 The FlowerCare library provides a comprehensive exception hierarchy to help you handle different error conditions gracefully. All exceptions inherit from a common base class and provide meaningful error messages.
 
-::: flowercare.exceptions
+::: pyflowercare.exceptions
 
 ## Exception Hierarchy
 

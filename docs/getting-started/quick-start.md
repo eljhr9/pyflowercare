@@ -178,8 +178,8 @@ except DeviceError as e:
 Now that you have the basics working, explore these topics:
 
 - **[First Steps](first-steps.md)**: Learn core concepts in detail
-- **[Device Discovery](../user-guide/device-discovery.md)**: Advanced scanning techniques
-- **[Reading Sensor Data](../user-guide/reading-data.md)**: All about sensor measurements
+- **[FlowerCareScanner API](../api/scanner.md)**: Advanced scanning techniques
+- **[FlowerCareDevice API](../api/device.md)**: All about reading sensor and historical data
 - **[Examples](../examples/basic-usage.md)**: More complete code examples
 
 ## Troubleshooting

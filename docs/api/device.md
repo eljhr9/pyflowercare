@@ -2,7 +2,7 @@
 
 The `FlowerCareDevice` class is the core interface for communicating with FlowerCare Bluetooth sensors. It handles all device operations including connecting, reading sensor data, and managing the device lifecycle.
 
-::: flowercare.device.FlowerCareDevice
+::: pyflowercare.device.FlowerCareDevice
 
 ## Overview
 
@@ -78,6 +78,29 @@ Checks if the device is currently connected.
 ```python
 if device.is_connected:
     data = await device.read_sensor_data()
+```
+
+### `last_history_complete`
+```python
+@property
+def last_history_complete(self) -> bool
+```
+Whether the most recent `get_historical_data()` call ran to completion.
+
+`get_historical_data()` never raises on a mid-read connection drop — it
+reconnects and resumes, and if it ultimately cannot finish it returns the
+entries collected so far. Check this property afterwards to tell a complete
+read from a partial one.
+
+**Returns:** `True` if the last history read finished; `False` if it was
+interrupted (or has not run yet on a fresh connection — it defaults to `True`
+before the first call).
+
+```python
+async with device:
+    history = await device.get_historical_data()
+    if not device.last_history_complete:
+        print(f"⚠️ Partial read: only {len(history)} entries retrieved")
 ```
 
 ## Connection Management
@@ -165,10 +188,10 @@ async with device:
 
 | Field | Type | Unit | Description |
 |-------|------|------|-------------|
-| `temperature` | `float` | °C | Air temperature |
-| `brightness` | `int` | lux | Light intensity |
+| `temperature` | `float` | °C | Air temperature (may be negative) |
+| `brightness` | `Optional[int]` | lux | Light intensity, or `None` if not measured |
 | `moisture` | `int` | % | Soil moisture (0-100) |
-| `conductivity` | `int` | µS/cm | Soil conductivity/fertility |
+| `conductivity` | `Optional[int]` | µS/cm | Soil conductivity/fertility, or `None` if not measured |
 | `timestamp` | `datetime` | - | When measurement was taken |
 
 ### `get_device_info()`
@@ -208,18 +231,28 @@ async def get_historical_data(self) -> List[HistoricalEntry]
 ```
 Retrieves historical sensor data stored on the device.
 
-**Returns:** List of `HistoricalEntry` objects, ordered by timestamp
+The read is resilient: if the BLE link drops mid-retrieval, the library waits
+briefly, reconnects, and resumes from the same entry (up to a few attempts)
+without losing already-collected entries. If it still cannot finish, it returns
+the entries gathered so far instead of raising. Check
+[`last_history_complete`](#last_history_complete) to distinguish a full read
+from a partial one.
+
+**Returns:** List of `HistoricalEntry` objects, ordered by timestamp. May be a
+partial list if the connection could not be recovered.
 
 **Raises:**
-- `ConnectionError`: If device is not connected
-- `DeviceError`: If device operation fails
+- `ConnectionError`: Only if the device is not connected when the call starts.
+  Drops *during* retrieval are handled internally and yield a partial result.
 
 ```python
 async with device:
     history = await device.get_historical_data()
-    
+
     print(f"Found {len(history)} historical entries")
-    
+    if not device.last_history_complete:
+        print("⚠️ Read was interrupted — this is a partial result")
+
     # Show last 5 entries
     for entry in history[-5:]:
         print(f"{entry.timestamp}: {entry.sensor_data}")

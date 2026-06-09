@@ -4,7 +4,7 @@ The FlowerCare library uses well-defined data models to represent sensor reading
 
 ## SensorData
 
-::: flowercare.models.SensorData
+::: pyflowercare.models.SensorData
 
 The `SensorData` class represents a complete set of sensor measurements from a FlowerCare device.
 
@@ -12,11 +12,22 @@ The `SensorData` class represents a complete set of sensor measurements from a F
 
 | Field | Type | Unit | Range | Description |
 |-------|------|------|-------|-------------|
-| `temperature` | `float` | °C | -10 to 60 | Air temperature near the plant |
-| `brightness` | `int` | lux | 0 to 120,000 | Light intensity |
+| `temperature` | `float` | °C | -50 to 100 | Air temperature near the plant (negative values are valid) |
+| `brightness` | `Optional[int]` | lux | 0 to 100,000 | Light intensity, or `None` if the device did not measure it |
 | `moisture` | `int` | % | 0 to 100 | Soil moisture percentage |
-| `conductivity` | `int` | µS/cm | 0 to 10,000 | Soil electrical conductivity (fertility) |
+| `conductivity` | `Optional[int]` | µS/cm | 0 to 10,000 | Soil electrical conductivity (fertility), or `None` if not measured |
 | `timestamp` | `Optional[datetime]` | - | - | When the measurement was taken |
+
+!!! note "Optional brightness and conductivity"
+    `brightness` and `conductivity` are `Optional[int]`. The sensor occasionally
+    stores no reading for these fields (common in historical entries), or returns
+    a value outside the device's documented range. In both cases the library
+    reports `None` rather than a misleading sentinel number, so guard for it:
+
+    ```python
+    if data.brightness is not None:
+        print(f"{data.brightness} lux")
+    ```
 
 ### Usage Examples
 
@@ -35,14 +46,13 @@ async with device:
 # String representation
 print(data)
 # Output: Temperature: 23.5°C, Brightness: 15420 lux, Moisture: 42%, Conductivity: 1180 µS/cm
+# Unmeasured fields render as N/A, e.g.:
+# Temperature: 23.5°C, Brightness: N/A, Moisture: 42%, Conductivity: N/A
 
 # JSON serialization
-import json
-from dataclasses import asdict
-
-data_dict = asdict(data)
-data_dict['timestamp'] = data.timestamp.isoformat() if data.timestamp else None
-json_data = json.dumps(data_dict)
+# SensorData is a Pydantic model, so use its built-in serialization
+json_data = data.model_dump_json()          # JSON string
+data_dict = data.model_dump(mode="json")    # dict with ISO-formatted timestamp
 ```
 
 ### Value Interpretation
@@ -222,7 +232,7 @@ if health.issues:
 
 ## DeviceInfo
 
-::: flowercare.models.DeviceInfo
+::: pyflowercare.models.DeviceInfo
 
 The `DeviceInfo` class contains metadata about a FlowerCare device.
 
@@ -309,7 +319,7 @@ compatibility = check_firmware_compatibility(info)
 
 ## HistoricalEntry
 
-::: flowercare.models.HistoricalEntry
+::: pyflowercare.models.HistoricalEntry
 
 The `HistoricalEntry` class represents a single historical sensor reading with its timestamp.
 
@@ -339,11 +349,11 @@ def analyze_history(history: List[HistoricalEntry]) -> dict:
     if not history:
         return {"error": "No data available"}
     
-    # Extract values
+    # Extract values. brightness/conductivity may be None, so filter them out.
     temperatures = [entry.sensor_data.temperature for entry in history]
     moistures = [entry.sensor_data.moisture for entry in history]
-    conductivities = [entry.sensor_data.conductivity for entry in history]
-    brightnesses = [entry.sensor_data.brightness for entry in history]
+    conductivities = [e.sensor_data.conductivity for e in history if e.sensor_data.conductivity is not None]
+    brightnesses = [e.sensor_data.brightness for e in history if e.sensor_data.brightness is not None]
     
     # Calculate statistics
     return {
@@ -481,25 +491,17 @@ export_to_csv(history, "plant_data.csv")
 
 ```python
 import json
-from dataclasses import asdict
 
 def export_to_json(history: List[HistoricalEntry], filename: str):
     """Export historical data to JSON file"""
-    
-    data = []
-    for entry in history:
-        entry_dict = {
-            'timestamp': entry.timestamp.isoformat(),
-            'sensor_data': asdict(entry.sensor_data)
-        }
-        # Convert timestamp in sensor_data to string
-        if entry_dict['sensor_data']['timestamp']:
-            entry_dict['sensor_data']['timestamp'] = entry.sensor_data.timestamp.isoformat()
-        data.append(entry_dict)
-    
+
+    # HistoricalEntry is a Pydantic model; model_dump(mode="json") handles
+    # nested SensorData and ISO-formats every datetime for you.
+    data = [entry.model_dump(mode="json") for entry in history]
+
     with open(filename, 'w') as jsonfile:
         json.dump(data, jsonfile, indent=2)
-    
+
     print(f"Exported {len(history)} entries to {filename}")
 
 # Usage

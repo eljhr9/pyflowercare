@@ -2,7 +2,7 @@
 
 The `FlowerCareScanner` class handles discovery and identification of FlowerCare Bluetooth devices. It provides multiple scanning methods to fit different use cases, from one-time device discovery to continuous monitoring.
 
-::: flowercare.scanner.FlowerCareScanner
+::: pyflowercare.scanner.FlowerCareScanner
 
 ## Overview
 
@@ -83,42 +83,54 @@ for _ in range(3):
 print(f"Total unique devices: {len(all_devices)}")
 ```
 
-### `find_device_by_address(mac_address, timeout=10.0)`
+### `find_device_by_address(device_address, timeout=10.0)`
 ```python
-async def find_device_by_address(self, mac_address: str, timeout: float = 10.0) -> Optional[FlowerCareDevice]
+async def find_device_by_address(self, device_address: str, timeout: float = 10.0) -> Optional[FlowerCareDevice]
 ```
-Searches for a specific device by its MAC address.
+Builds a `FlowerCareDevice` for a known address **without scanning**. This is
+the fast path when you already know the device's identifier and just want to
+connect to it directly.
 
 **Parameters:**
-- `mac_address` (str): Target device MAC address (case-insensitive)
-- `timeout` (float): Maximum scan time in seconds (default: 10.0)
+- `device_address` (str): MAC address (`C4:7C:8D:6A:8E:CA`) **or** a
+  UUID-like identifier (`19B586E3-3E4F-917B-5ED4-DF0C464B0C3B`). On macOS,
+  CoreBluetooth exposes devices by UUID rather than MAC, so use the UUID there.
+  Case-insensitive.
+- `timeout` (float): Accepted for API compatibility but **unused** — this method
+  does not scan, so nothing times out.
 
-**Returns:** `FlowerCareDevice` if found, `None` if not found
+**Returns:** A `FlowerCareDevice` for the address, or `None` if the address is
+not a syntactically valid MAC/UUID.
 
-**Raises:**
-- `TimeoutError`: If scan times out
+!!! warning "No reachability check"
+    Because this method does not scan, a non-`None` return only means the
+    address was well-formed — not that the device is present or in range.
+    Reachability is determined when you actually `connect()` (which raises
+    `ConnectionError`/`TimeoutError` if the device cannot be reached).
 
 ```python
-# Find specific device
-target_mac = "C4:7C:8D:6A:8E:CA"
-device = await scanner.find_device_by_address(target_mac, timeout=15.0)
+# Build a device directly from a known address
+target = "C4:7C:8D:6A:8E:CA"  # or a UUID on macOS
+device = await scanner.find_device_by_address(target)
 
-if device:
-    print(f"Found target device: {device.name}")
-    async with device:
-        data = await device.read_sensor_data()
-        print(data)
+if device is None:
+    print("Invalid address format")
 else:
-    print("Device not found")
+    try:
+        async with device:  # connection (and any failure) happens here
+            data = await device.read_sensor_data()
+            print(data)
+    except ConnectionError:
+        print("Device not reachable")
 ```
 
 #### Use Cases
 
 **Known Device Connection:**
 ```python
-# Connect to previously discovered device
-known_mac = "C4:7C:8D:6A:8E:CA"
-device = await scanner.find_device_by_address(known_mac)
+# Connect to a previously discovered device without re-scanning
+known_address = "C4:7C:8D:6A:8E:CA"
+device = await scanner.find_device_by_address(known_address)
 
 if device:
     async with device:
@@ -126,12 +138,18 @@ if device:
         print(f"Living room plant: {data.temperature}°C, {data.moisture}%")
 ```
 
-**Device Verification:**
+**Reachability Check:**
 ```python
-# Verify device is still reachable
-async def check_device_availability(mac_address):
-    device = await scanner.find_device_by_address(mac_address, timeout=5.0)
-    return device is not None
+# A valid address always returns a device, so probe by connecting
+async def check_device_availability(address):
+    device = await scanner.find_device_by_address(address)
+    if device is None:
+        return False
+    try:
+        async with device:
+            return True
+    except (ConnectionError, TimeoutError):
+        return False
 
 is_available = await check_device_availability("C4:7C:8D:6A:8E:CA")
 print(f"Device available: {is_available}")
@@ -310,10 +328,10 @@ await dashboard.update_dashboard()
 Create one scanner instance and reuse it:
 
 ```python
-# Good: Reuse scanner
+# Fine to reuse one scanner instance across scans
 scanner = FlowerCareScanner()
 devices1 = await scanner.scan_for_devices()
-devices2 = await scanner.scan_for_devices()  # Reuses internal scanner
+devices2 = await scanner.scan_for_devices()  # each call runs a fresh BLE scan
 
 # Avoid: Multiple scanner instances
 scanner1 = FlowerCareScanner()

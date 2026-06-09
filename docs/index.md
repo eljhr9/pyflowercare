@@ -32,8 +32,8 @@ Full type annotation support for better IDE integration and code quality
 
 | Sensor | Unit | Range | Description |
 |--------|------|-------|-------------|
-| **Temperature** | °C | -10 to 60°C | Ambient temperature |
-| **Brightness** | lux | 0 to 120,000 lux | Light intensity |
+| **Temperature** | °C | -10 to 60°C | Ambient temperature (negative values supported) |
+| **Brightness** | lux | 0 to 100,000 lux | Light intensity |
 | **Soil Moisture** | % | 0 to 100% | Soil water content |
 | **Soil Conductivity** | µS/cm | 0 to 10,000 µS/cm | Soil fertility/nutrients |
 
@@ -81,10 +81,10 @@ asyncio.run(main())
 This documentation is organized to help you get started quickly and then dive deeper into advanced topics:
 
 - **[Getting Started](getting-started/installation.md)**: Installation and basic setup
-- **[User Guide](user-guide/device-discovery.md)**: Comprehensive usage instructions
+- **[Quick Start](getting-started/quick-start.md)**: Your first program in minutes
 - **[Examples](examples/basic-usage.md)**: Real-world code examples
 - **[API Reference](api/device.md)**: Detailed class and method documentation
-- **[Advanced Topics](advanced/protocol.md)**: Protocol details and optimization
+- **[Troubleshooting](troubleshooting.md)** & **[FAQ](faq.md)**: Common issues and answers
 
 ## 🤝 Community & Support
 

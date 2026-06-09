@@ -3,8 +3,8 @@ site_description: A comprehensive Python library for FlowerCare Bluetooth plant 
 site_author: Ilya Redkolis
 site_url: https://your-docs-site.com
 
-repo_url: https://github.com/eljhr9/growify-core
-repo_name: growify-core
+repo_url: https://github.com/eljhr9/pyflowercare
+repo_name: pyflowercare
 
 theme:
   name: material
@@ -68,25 +68,12 @@ nav:
     - Installation: getting-started/installation.md
     - Quick Start: getting-started/quick-start.md
     - First Steps: getting-started/first-steps.md
-  - User Guide:
-    - Device Discovery: user-guide/device-discovery.md
-    - Reading Sensor Data: user-guide/reading-data.md
-    - Historical Data: user-guide/historical-data.md
-    - Device Management: user-guide/device-management.md
-    - Error Handling: user-guide/error-handling.md
   - Examples:
     - Basic Usage: examples/basic-usage.md
-    - Continuous Monitoring: examples/continuous-monitoring.md
-    - Multiple Devices: examples/multiple-devices.md
-    - Data Export: examples/data-export.md
   - API Reference:
     - FlowerCareDevice: api/device.md
     - FlowerCareScanner: api/scanner.md
     - Data Models: api/models.md
     - Exceptions: api/exceptions.md
-  - Advanced:
-    - Protocol Details: advanced/protocol.md
-    - Performance Tips: advanced/performance.md
-    - Extending the Library: advanced/extending.md
   - Troubleshooting: troubleshooting.md
   - FAQ: faq.md
