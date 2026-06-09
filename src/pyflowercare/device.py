@@ -14,6 +14,7 @@ from .constants import (
     MAX_HISTORY_RECONNECTS,
     MAX_VALID_BRIGHTNESS,
     MAX_VALID_CONDUCTIVITY,
+    RECONNECT_SETTLE_DELAY,
     SERVICE_UUIDS,
 )
 from .exceptions import ConnectionError, DataParsingError, DeviceError, TimeoutError
@@ -247,6 +248,9 @@ class FlowerCareDevice:
             await self.disconnect()
         except Exception:
             pass
+        # Let the peripheral re-advertise and the BLE stack release the old link;
+        # reconnecting immediately after a drop typically times out.
+        await asyncio.sleep(RECONNECT_SETTLE_DELAY)
         await self.connect()
         await self._begin_history_read()  # re-init; the re-read entry count is ignored
 
@@ -340,17 +344,31 @@ class FlowerCareDevice:
                         # A single unparseable entry - skip it and move on.
                         logger.debug(f"Skipping unparseable entry {i}: {error}")
                         i += 1
-                    except (ConnectionError, BleakError) as error:
+                    except (ConnectionError, BleakError, TimeoutError) as error:
                         # Connection dropped mid-retrieval: reconnect and resume
                         # from the same index without losing collected entries.
                         if reconnects >= MAX_HISTORY_RECONNECTS:
-                            raise
+                            logger.warning(
+                                f"Giving up after {reconnects} reconnect attempt(s) at "
+                                f"entry {i}/{total}; returning {len(historical_entries)} "
+                                f"partial entries"
+                            )
+                            return historical_entries
                         reconnects += 1
                         logger.warning(
                             f"Connection lost at entry {i}/{total}; reconnecting and "
                             f"resuming ({reconnects}/{MAX_HISTORY_RECONNECTS}): {error}"
                         )
-                        await self._resume_history_read()
+                        try:
+                            await self._resume_history_read()
+                        except (ConnectionError, BleakError, TimeoutError) as reconnect_err:
+                            # Reconnect itself failed - a clean partial result,
+                            # not an unexpected error. last_history_complete stays False.
+                            logger.warning(
+                                f"Reconnect failed at entry {i}/{total}: {reconnect_err}; "
+                                f"returning {len(historical_entries)} partial entries"
+                            )
+                            return historical_entries
 
         except (ConnectionError, BleakError) as e:
             # Connection lost (and not recoverable) during retrieval. Return

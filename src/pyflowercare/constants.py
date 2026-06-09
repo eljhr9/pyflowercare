@@ -34,6 +34,10 @@ ADVERTISEMENT_UUID: Final[str] = "0000fe95-0000-1000-8000-00805f9b34fb"
 # Historical data retrieval limits
 MAX_HISTORY_ENTRIES: Final[int] = 1000  # safety cap on entries read per call
 MAX_HISTORY_RECONNECTS: Final[int] = 3  # reconnect attempts when a read drops mid-retrieval
+# Pause before reconnecting after a mid-retrieval drop. Reconnecting immediately
+# typically times out on CoreBluetooth; a short settle window lets the peripheral
+# re-advertise and the BLE stack release the old link.
+RECONNECT_SETTLE_DELAY: Final[float] = 2.0  # seconds
 
 # Plausibility ceilings for historical readings. The device fills unmeasured
 # fields with 0xFF; values above the sensor's documented range are treated as

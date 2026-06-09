@@ -346,6 +346,63 @@ class TestFlowerCareDevice:
         assert isinstance(result, list)
         assert len(result) == 0
 
+    @pytest.mark.asyncio
+    async def test_get_historical_data_reconnect_failure_returns_partial(
+        self, mock_ble_device, mock_bleak_client, historical_entry_bytes, monkeypatch
+    ):
+        """A mid-read drop whose reconnect fails returns partial data (not an
+        error) and leaves last_history_complete False."""
+        device = FlowerCareDevice(mock_ble_device)
+        device.client = mock_bleak_client
+        device._connected = True
+
+        epoch = (1672580000).to_bytes(4, "little")
+        count = bytes([3, 0]) + b"\x00" * 14  # 3 entries reported
+        # reads: epoch, count, entry#0 ok, entry#1 -> connection drop
+        mock_bleak_client.read_gatt_char.side_effect = [
+            epoch,
+            count,
+            historical_entry_bytes,
+            BleakError("disconnected"),
+        ]
+        # Reconnect attempt times out.
+        monkeypatch.setattr(device, "connect", AsyncMock(side_effect=TimeoutError("timeout")))
+        monkeypatch.setattr("pyflowercare.device.asyncio.sleep", AsyncMock())
+
+        result = await device.get_historical_data()
+
+        assert len(result) == 1  # entry #0 collected before the drop
+        assert device.last_history_complete is False
+
+    @pytest.mark.asyncio
+    async def test_get_historical_data_reconnect_resumes(
+        self, mock_ble_device, mock_bleak_client, historical_entry_bytes, monkeypatch
+    ):
+        """After a mid-read drop, a successful reconnect resumes and completes."""
+        device = FlowerCareDevice(mock_ble_device)
+        device.client = mock_bleak_client
+        device._connected = True
+
+        epoch = (1672580000).to_bytes(4, "little")
+        count = bytes([2, 0]) + b"\x00" * 14  # 2 entries reported
+        # reads: epoch, count, entry#0 ok, entry#1 drop, (resume re-reads count),
+        #        entry#1 retry ok
+        mock_bleak_client.read_gatt_char.side_effect = [
+            epoch,
+            count,
+            historical_entry_bytes,
+            BleakError("disconnected"),
+            count,
+            historical_entry_bytes,
+        ]
+        monkeypatch.setattr(device, "connect", AsyncMock())  # reconnect succeeds
+        monkeypatch.setattr("pyflowercare.device.asyncio.sleep", AsyncMock())
+
+        result = await device.get_historical_data()
+
+        assert len(result) == 2
+        assert device.last_history_complete is True
+
 
 class TestParseHistoryEntry:
     """Parse real 16-byte history records captured from hardware.
