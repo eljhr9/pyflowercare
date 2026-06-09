@@ -1,0 +1,85 @@
+# GitLab CI/CD pipeline for pyflowercare
+#
+# Flow:
+#   test            - runs on every branch, merge request and tag
+#   build           - builds wheel + sdist (tags only), passes dist/ as artifacts
+#   publish:testpypi - uploads to TestPyPI (tags v* only)
+#   publish:pypi     - uploads to PyPI (tags v* only, MANUAL gate before prod)
+#
+# Required CI/CD variables (Settings > CI/CD > Variables, marked "Masked"):
+#   TEST_PYPI_TOKEN - TestPyPI API token (starts with "pypi-")
+#   PYPI_TOKEN      - production PyPI API token (starts with "pypi-")
+
+stages:
+  - test
+  - build
+  - publish
+
+default:
+  image: python:3.11-slim
+  before_script:
+    - pip install --quiet --upgrade pip poetry
+    - poetry config virtualenvs.in-project true
+
+# Cache poetry-managed virtualenv between jobs/runs
+cache:
+  key:
+    files:
+      - poetry.lock
+  paths:
+    - .venv/
+
+.tag-only: &tag-only
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+
+test:
+  stage: test
+  script:
+    - poetry install --with dev
+    - poetry run pytest -q --ignore=examples
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+    - if: '$CI_COMMIT_BRANCH'
+
+build:
+  stage: build
+  <<: *tag-only
+  script:
+    # Fail early if the tag does not match the package version
+    - PKG_VERSION=$(poetry version --short)
+    - test "v$PKG_VERSION" = "$CI_COMMIT_TAG" || { echo "Tag $CI_COMMIT_TAG != package version v$PKG_VERSION"; exit 1; }
+    - poetry build
+    - poetry run twine check dist/*
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 week
+
+publish:testpypi:
+  stage: publish
+  <<: *tag-only
+  needs: ["build"]
+  script:
+    - poetry run twine upload --non-interactive
+      --repository-url https://test.pypi.org/legacy/
+      -u __token__ -p "$TEST_PYPI_TOKEN"
+      dist/*
+  environment:
+    name: testpypi
+    url: https://test.pypi.org/project/pyflowercare/
+
+publish:pypi:
+  stage: publish
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+      when: manual
+  needs: ["build", "publish:testpypi"]
+  script:
+    - poetry run twine upload --non-interactive
+      -u __token__ -p "$PYPI_TOKEN"
+      dist/*
+  environment:
+    name: pypi
+    url: https://pypi.org/project/pyflowercare/
