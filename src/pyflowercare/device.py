@@ -31,6 +31,10 @@ class FlowerCareDevice:
         self._connected: bool = False
         self._cached_name: Optional[str] = None
         self._last_history_complete: bool = True
+        #: Signal strength (dBm) of the latest advertisement seen by
+        #: FlowerCareScanner.scan_for_devices. None for devices obtained any other
+        #: way, e.g. find_device_by_address, which does not scan.
+        self.rssi: Optional[int] = None
 
     @property
     def mac_address(self) -> str:

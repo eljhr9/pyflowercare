@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import re
-from typing import AsyncGenerator, Callable, List, Optional, Set
+from typing import AsyncGenerator, Callable, Dict, List, Optional, Set
 
 from bleak import BleakScanner
 from bleak.backends.device import BLEDevice
@@ -36,17 +36,26 @@ class FlowerCareScanner:
         return False
 
     async def scan_for_devices(self, timeout: float = 10.0) -> List[FlowerCareDevice]:
-        devices: List[FlowerCareDevice] = []
-        found_addresses: Set[str] = set()
+        """Scan for FlowerCare devices for ``timeout`` seconds.
+
+        Each device is returned once, in discovery order, with ``rssi`` set from its
+        most recent advertisement during the scan. The value comes from
+        ``AdvertisementData.rssi``; ``BLEDevice.rssi`` is deprecated in bleak 0.21.
+        """
+        devices: Dict[str, FlowerCareDevice] = {}
 
         def detection_callback(device: BLEDevice, advertisement_data: AdvertisementData) -> None:
-            if (
-                self._is_flowercare_device(device, advertisement_data)
-                and device.address not in found_addresses
-            ):
-                found_addresses.add(device.address)
-                devices.append(FlowerCareDevice(device))
+            if not self._is_flowercare_device(device, advertisement_data):
+                return
+
+            flowercare_device = devices.get(device.address)
+            if flowercare_device is None:
+                flowercare_device = FlowerCareDevice(device)
+                devices[device.address] = flowercare_device
                 logger.info(f"Found FlowerCare device: {device.name} ({device.address})")
+            # Updated on every advertisement, not only the first: the latest reading
+            # is the best estimate of the current signal.
+            flowercare_device.rssi = advertisement_data.rssi
 
         try:
             async with BleakScanner(detection_callback) as scanner:
@@ -55,7 +64,7 @@ class FlowerCareScanner:
         except asyncio.TimeoutError:
             raise TimeoutError(f"Scan timeout after {timeout}s")
 
-        return devices
+        return list(devices.values())
 
     async def find_device_by_address(
         self, device_address: str, timeout: float = 10.0

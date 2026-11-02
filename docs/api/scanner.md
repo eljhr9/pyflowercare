@@ -38,7 +38,9 @@ Performs a one-time scan for FlowerCare devices.
 **Parameters:**
 - `timeout` (float): Scan duration in seconds (default: 10.0)
 
-**Returns:** List of `FlowerCareDevice` objects found during the scan
+**Returns:** List of `FlowerCareDevice` objects found during the scan, each
+once and in discovery order, with `rssi` set from the device's latest
+advertisement during the scan (since 0.4.4)
 
 **Raises:**
 - `TimeoutError`: If scan times out (rare - usually returns empty list)

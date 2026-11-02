@@ -103,6 +103,23 @@ async with device:
         print(f"⚠️ Partial read: only {len(history)} entries retrieved")
 ```
 
+### `rssi`
+```python
+rssi: Optional[int]
+```
+Signal strength in dBm of the latest advertisement seen while
+`FlowerCareScanner.scan_for_devices()` ran. Closer to zero is stronger.
+
+`None` for a device obtained without scanning, such as one from
+`find_device_by_address()`, and for an advertisement that carried no RSSI.
+Available since 0.4.4.
+
+```python
+devices = await scanner.scan_for_devices(timeout=10.0)
+for device in sorted(devices, key=lambda d: d.rssi or -999, reverse=True):
+    print(f"{device.mac_address}: {device.rssi} dBm")
+```
+
 ## Connection Management
 
 ### `connect(timeout=10.0)`

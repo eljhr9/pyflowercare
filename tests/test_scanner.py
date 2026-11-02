@@ -323,3 +323,74 @@ class TestFlowerCareScanner:
 
             with pytest.raises(asyncio.CancelledError):
                 await task
+
+
+def _advertisement(rssi):
+    advertisement = Mock(spec=AdvertisementData)
+    advertisement.service_uuids = ["0000fe95-0000-1000-8000-00805f9b34fb"]
+    advertisement.rssi = rssi
+    return advertisement
+
+
+class TestScanRssi:
+    """scan_for_devices reports each device's signal strength."""
+
+    @pytest.mark.asyncio
+    async def test_rssi_comes_from_the_advertisement(self, mock_ble_device):
+        scanner = FlowerCareScanner()
+
+        def detect(callback):
+            callback(mock_ble_device, _advertisement(-67))
+            return AsyncMock()
+
+        with patch("pyflowercare.scanner.BleakScanner", side_effect=detect):
+            devices = await scanner.scan_for_devices(timeout=0.01)
+
+        assert len(devices) == 1
+        assert devices[0].rssi == -67
+
+    @pytest.mark.asyncio
+    async def test_repeated_advertisement_updates_rssi_without_duplicating(self, mock_ble_device):
+        scanner = FlowerCareScanner()
+
+        def detect(callback):
+            callback(mock_ble_device, _advertisement(-80))
+            callback(mock_ble_device, _advertisement(-61))
+            return AsyncMock()
+
+        with patch("pyflowercare.scanner.BleakScanner", side_effect=detect):
+            devices = await scanner.scan_for_devices(timeout=0.01)
+
+        assert len(devices) == 1
+        assert devices[0].rssi == -61, "the latest advertisement wins"
+
+    @pytest.mark.asyncio
+    async def test_devices_keep_discovery_order(self):
+        scanner = FlowerCareScanner()
+        first, second = Mock(spec=BLEDevice), Mock(spec=BLEDevice)
+        first.address, first.name = "C4:7C:8D:00:00:01", "Flower care"
+        second.address, second.name = "C4:7C:8D:00:00:02", "Flower care"
+
+        def detect(callback):
+            callback(first, _advertisement(-70))
+            callback(second, _advertisement(-50))
+            callback(first, _advertisement(-65))
+            return AsyncMock()
+
+        with patch("pyflowercare.scanner.BleakScanner", side_effect=detect):
+            devices = await scanner.scan_for_devices(timeout=0.01)
+
+        assert [(d.mac_address, d.rssi) for d in devices] == [
+            ("C4:7C:8D:00:00:01", -65),
+            ("C4:7C:8D:00:00:02", -50),
+        ]
+
+    @pytest.mark.asyncio
+    async def test_device_found_by_address_has_no_rssi(self):
+        device = await FlowerCareScanner().find_device_by_address("C4:7C:8D:00:00:01")
+
+        assert device is not None
+        assert device.rssi is None
+
+    def test_new_device_has_no_rssi(self, mock_ble_device):
+        assert FlowerCareDevice(mock_ble_device).rssi is None
